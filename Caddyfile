@@ -1,0 +1,14 @@
+# Production Caddyfile — configured in Story 5.3
+# {$DOMAIN} {
+#   basicauth {
+#     {$CADDY_USER} {$CADDY_HASHED_PASSWORD}
+#   }
+#   handle /api/* {
+#     reverse_proxy localhost:8000
+#   }
+#   handle {
+#     root * /app/frontend/dist
+#     file_server
+#     try_files {path} /index.html
+#   }
+# }

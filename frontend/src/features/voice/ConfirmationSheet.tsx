@@ -1,0 +1,114 @@
+import { useState } from 'react'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { useCreateTask } from '@/features/tasks/useTasks'
+import DeadlineChip from './DeadlineChip'
+import OffsetSelector from './OffsetSelector'
+
+interface ConfirmationSheetProps {
+  open: boolean
+  onClose: () => void
+}
+
+interface SheetFormProps {
+  onClose: () => void
+}
+
+function SheetForm({ onClose }: SheetFormProps) {
+  const [name, setName] = useState('')
+  const [deadlineUtcIso, setDeadlineUtcIso] = useState<string | null>(null)
+  const [description, setDescription] = useState('')
+  const [selectedOffsets, setSelectedOffsets] = useState<number[]>([])
+
+  const createTask = useCreateTask()
+  const canSave = name.trim().length > 0 && deadlineUtcIso !== null
+
+  const handleSave = async () => {
+    if (!canSave) return
+    try {
+      await createTask.mutateAsync({
+        name: name.trim(),
+        deadline_at: deadlineUtcIso!,
+        description: description.trim() || undefined,
+      })
+      onClose()
+    } catch {
+      // createTask.isError will be true; error message renders below Save button
+    }
+  }
+
+  return (
+    <>
+      {/* Drag handle */}
+      <div className="w-12 h-1 bg-zinc-500 rounded-full mx-auto mb-4" />
+
+      {/* Name field */}
+      <div className="bg-zinc-800 rounded-2xl px-4 py-3 mb-3">
+        <input
+          autoFocus
+          type="text"
+          placeholder="Task name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="bg-transparent text-lg font-medium text-zinc-50 placeholder:text-zinc-500 w-full outline-none"
+        />
+      </div>
+
+      {/* Deadline chip */}
+      <div className="bg-zinc-800 rounded-2xl p-3 mb-3">
+        <DeadlineChip value={deadlineUtcIso} onChange={setDeadlineUtcIso} />
+      </div>
+
+      {/* Reminders */}
+      <p className="text-xs text-zinc-400 mb-2 uppercase tracking-wider font-semibold">
+        Reminders
+      </p>
+      <OffsetSelector selected={selectedOffsets} onChange={setSelectedOffsets} />
+
+      {/* Description */}
+      <textarea
+        placeholder="Description (optional)"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="bg-zinc-800 rounded-2xl px-4 py-3 text-sm text-zinc-50 placeholder:text-zinc-500 w-full outline-none resize-none h-20 mt-3"
+      />
+
+      {/* Save */}
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={!canSave}
+        aria-disabled={!canSave}
+        className="bg-violet-500 text-white rounded-2xl py-3 font-medium mt-4 w-full disabled:opacity-50 disabled:pointer-events-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+      >
+        {createTask.isPending ? 'Saving…' : 'Save'}
+      </button>
+
+      {createTask.isError && (
+        <p className="text-red-400 text-sm text-center mt-2">Failed to save. Tap Save to retry.</p>
+      )}
+
+      {/* Cancel */}
+      <button
+        type="button"
+        className="text-zinc-400 text-sm text-center w-full mt-3"
+        onClick={onClose}
+      >
+        Cancel
+      </button>
+    </>
+  )
+}
+
+export default function ConfirmationSheet({ open, onClose }: ConfirmationSheetProps) {
+  return (
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent
+        side="bottom"
+        className="bg-zinc-700 rounded-t-2xl px-4 pt-4 pb-8 border-0"
+      >
+        {/* key=open resets form state each time the sheet opens */}
+        <SheetForm key={String(open)} onClose={onClose} />
+      </SheetContent>
+    </Sheet>
+  )
+}

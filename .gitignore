@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+
+# Environment secrets
+.env
+*.env
+.env.local
+.env.*.local
+
+# Databases
+*.db
+*.sqlite
+
+# Build output
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# uv
+.python-version
