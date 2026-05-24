@@ -13,6 +13,17 @@ export function useTasksQuery() {
   })
 }
 
+export function useTaskQuery(taskId: number) {
+  return useQuery<Task>({
+    queryKey: ['tasks', taskId],
+    queryFn: async () => {
+      const { data } = await api.get<Task>(`/api/v1/tasks/${taskId}`)
+      return data
+    },
+    enabled: !isNaN(taskId),
+  })
+}
+
 interface CreateTaskPayload {
   name: string
   deadline_at: string
@@ -27,6 +38,26 @@ export function useCreateTask() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    },
+  })
+}
+
+interface UpdateTaskPayload {
+  id: number
+  name?: string
+  deadline_at?: string
+  description?: string | null
+}
+
+export function useUpdateTask() {
+  return useMutation<Task, Error, UpdateTaskPayload>({
+    mutationFn: async ({ id, ...fields }) => {
+      const { data } = await api.patch<Task>(`/api/v1/tasks/${id}`, fields)
+      return data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks', data.id] })
     },
   })
 }

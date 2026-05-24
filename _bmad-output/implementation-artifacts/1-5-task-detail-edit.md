@@ -1,6 +1,6 @@
 # Story 1.5: Task Detail & Edit
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -34,73 +34,73 @@ So that I can review and correct tasks after they are created.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `useTaskQuery` and `useUpdateTask` hooks to `useTasks.ts` (AC: 1, 3)
-  - [ ] Open `frontend/src/features/tasks/useTasks.ts` — ADD two hooks alongside existing `useTasksQuery()` and `useCreateTask()` (which will be added by Story 1.4); do NOT remove or alter existing hooks
-  - [ ] Add `useTaskQuery(taskId: number)`: fetches `GET /api/v1/tasks/{id}` — cache key `["tasks", taskId]`; returns the single `Task` object
-  - [ ] Add `useUpdateTask()`: `useMutation` that calls `PATCH /api/v1/tasks/{id}` with partial fields; on success invalidates both `["tasks"]` AND `["tasks", taskId]`
-  - [ ] Payload type for update: `{ id: number; name?: string; deadline_at?: string; description?: string | null }` — `id` is used in the URL, not the body
-  - [ ] Import `queryClient` from `@/lib/queryClient` (singleton — do NOT use `useQueryClient()` hook)
+- [x] Task 1: Add `useTaskQuery` and `useUpdateTask` hooks to `useTasks.ts` (AC: 1, 3)
+  - [x] Open `frontend/src/features/tasks/useTasks.ts` — ADD two hooks alongside existing `useTasksQuery()` and `useCreateTask()` (which will be added by Story 1.4); do NOT remove or alter existing hooks
+  - [x] Add `useTaskQuery(taskId: number)`: fetches `GET /api/v1/tasks/{id}` — cache key `["tasks", taskId]`; returns the single `Task` object
+  - [x] Add `useUpdateTask()`: `useMutation` that calls `PATCH /api/v1/tasks/{id}` with partial fields; on success invalidates both `["tasks"]` AND `["tasks", taskId]`
+  - [x] Payload type for update: `{ id: number; name?: string; deadline_at?: string; description?: string | null }` — `id` is used in the URL, not the body
+  - [x] Import `queryClient` from `@/lib/queryClient` (singleton — do NOT use `useQueryClient()` hook)
 
-- [ ] Task 2: Wire TaskCard to navigate to detail view (AC: 1)
-  - [ ] Update `frontend/src/features/tasks/TaskCard.tsx` — wrap the entire `<li>` content or the card itself with a `<Link>` to `/tasks/${task.id}` using React Router v7
-  - [ ] Import `Link` from `react-router` (not `react-router-dom`)
-  - [ ] The `<li role="listitem">` wrapper stays; the clickable area should be the whole card body (not just the task name)
-  - [ ] Preserve all existing classes, overdue border logic, and the hidden completion button — do NOT break AC from Story 1.3
-  - [ ] The completion circle `<button>` must NOT be inside the `<Link>` — it is a separate action. Use `stopPropagation` or structure the Link around the non-interactive content only and leave the button outside the Link.
+- [x] Task 2: Wire TaskCard to navigate to detail view (AC: 1)
+  - [x] Update `frontend/src/features/tasks/TaskCard.tsx` — wrap the entire `<li>` content or the card itself with a `<Link>` to `/tasks/${task.id}` using React Router v7
+  - [x] Import `Link` from `react-router` (not `react-router-dom`)
+  - [x] The `<li role="listitem">` wrapper stays; the clickable area should be the whole card body (not just the task name)
+  - [x] Preserve all existing classes, overdue border logic, and the hidden completion button — do NOT break AC from Story 1.3
+  - [x] The completion circle `<button>` must NOT be inside the `<Link>` — it is a separate action. Use `stopPropagation` or structure the Link around the non-interactive content only and leave the button outside the Link.
 
-- [ ] Task 3: Implement `TaskDetail` page — read-only view (AC: 1, 4, 5)
-  - [ ] Fully replace the stub content of `frontend/src/features/tasks/TaskDetail.tsx`
-  - [ ] Read `taskId` from URL params: `const { taskId } = useParams()` — import `useParams` from `react-router`
-  - [ ] `taskId` from `useParams()` is a `string | undefined` — parse it to `number`: `const id = Number(taskId)`. If `isNaN(id)`, render error state.
-  - [ ] Call `useTaskQuery(id)` to load the task
-  - [ ] **Loading state:** 3 skeleton rows: `<div className="animate-pulse bg-zinc-800 rounded-2xl h-8 mb-3" />`
-  - [ ] **Error/not-found state:** `<p className="text-red-400 text-sm">Task not found.</p>` with a back button
-  - [ ] **Read-only layout (top to bottom):**
+- [x] Task 3: Implement `TaskDetail` page — read-only view (AC: 1, 4, 5)
+  - [x] Fully replace the stub content of `frontend/src/features/tasks/TaskDetail.tsx`
+  - [x] Read `taskId` from URL params: `const { taskId } = useParams()` — import `useParams` from `react-router`
+  - [x] `taskId` from `useParams()` is a `string | undefined` — parse it to `number`: `const id = Number(taskId)`. If `isNaN(id)`, render error state.
+  - [x] Call `useTaskQuery(id)` to load the task
+  - [x] **Loading state:** 3 skeleton rows: `<div className="animate-pulse bg-zinc-800 rounded-2xl h-8 mb-3" />`
+  - [x] **Error/not-found state:** `<p className="text-red-400 text-sm">Task not found.</p>` with a back button
+  - [x] **Read-only layout (top to bottom):**
     1. Header: `<div className="flex items-center gap-3 mb-6">` with back arrow button (`←` or chevron icon from `lucide-react`) + `<h1 className="text-xl font-semibold text-zinc-50">{task.name}</h1>`
     2. Deadline block: `<time dateTime={task.deadline_at} className="text-sm text-zinc-400">{formatDeadline(task.deadline_at)}</time>` — note `dateTime` attribute holds the UTC ISO value, display text is local-formatted
     3. Description block (only if `task.description`): `<p className="text-sm text-zinc-400 mt-4">{task.description}</p>`
     4. Edit button: `<Button className="w-full mt-6 bg-violet-500 text-white">Edit</Button>` — opens the edit sheet (Task 4)
-  - [ ] Page layout: `<div className="min-h-screen bg-zinc-900">` → `<div className="max-w-lg mx-auto px-4 pt-6 pb-24">`
-  - [ ] Back navigation: clicking the back arrow calls `navigate(-1)` from `useNavigate` — import from `react-router`
-  - [ ] Focus ring: all interactive elements must have `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900`
+  - [x] Page layout: `<div className="min-h-screen bg-zinc-900">` → `<div className="max-w-lg mx-auto px-4 pt-6 pb-24">`
+  - [x] Back navigation: clicking the back arrow calls `navigate(-1)` from `useNavigate` — import from `react-router`
+  - [x] Focus ring: all interactive elements must have `focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900`
 
-- [ ] Task 4: Implement edit mode via `EditSheet` (reusing ConfirmationSheet layout) (AC: 2, 3, 5)
-  - [ ] Create `frontend/src/features/voice/EditSheet.tsx` — this is a separate component from `ConfirmationSheet` to keep concerns clean, but follows the IDENTICAL layout and visual design
-  - [ ] Props: `open: boolean; onClose: () => void; task: Task` — pre-populated with existing task data
-  - [ ] Use `Sheet` + `SheetContent` from `@/components/ui/sheet` (installed in Story 1.4)
-  - [ ] **Internal state:** pre-populate from `task` prop when `open` changes to true:
+- [x] Task 4: Implement edit mode via `EditSheet` (reusing ConfirmationSheet layout) (AC: 2, 3, 5)
+  - [x] Create `frontend/src/features/voice/EditSheet.tsx` — this is a separate component from `ConfirmationSheet` to keep concerns clean, but follows the IDENTICAL layout and visual design
+  - [x] Props: `open: boolean; onClose: () => void; task: Task` — pre-populated with existing task data
+  - [x] Use `Sheet` + `SheetContent` from `@/components/ui/sheet` (installed in Story 1.4)
+  - [x] **Internal state:** pre-populate from `task` prop when `open` changes to true:
     - `name: string` — init from `task.name`
     - `deadlineUtcIso: string` — init from `task.deadline_at`
     - `description: string` — init from `task.description ?? ''`
-  - [ ] **Layout:** Identical to `ConfirmationSheet` (drag handle, NameField card, DeadlineChip card, description textarea, Save button, Cancel link) — reuse the same Tailwind classes
-  - [ ] **No OffsetSelector in edit sheet** — reminder offset editing is Story 2.x scope; do not include it here
-  - [ ] **Save handler:** call `updateTask.mutateAsync({ id: task.id, name, deadline_at: deadlineUtcIso, description: description.trim() || null })` then call `onClose()`
-  - [ ] Save button disabled until `name.trim().length > 0 && deadlineUtcIso` (same guard as ConfirmationSheet)
-  - [ ] Import `DeadlineChip` from `@/features/voice/DeadlineChip` — reuse it directly; do NOT recreate
-  - [ ] `useUpdateTask()` from `./useTasks` — import it in EditSheet
+  - [x] **Layout:** Identical to `ConfirmationSheet` (drag handle, NameField card, DeadlineChip card, description textarea, Save button, Cancel link) — reuse the same Tailwind classes
+  - [x] **No OffsetSelector in edit sheet** — reminder offset editing is Story 2.x scope; do not include it here
+  - [x] **Save handler:** call `updateTask.mutateAsync({ id: task.id, name, deadline_at: deadlineUtcIso, description: description.trim() || null })` then call `onClose()`
+  - [x] Save button disabled until `name.trim().length > 0 && deadlineUtcIso` (same guard as ConfirmationSheet)
+  - [x] Import `DeadlineChip` from `@/features/voice/DeadlineChip` — reuse it directly; do NOT recreate
+  - [x] `useUpdateTask()` from `./useTasks` — import it in EditSheet
 
-- [ ] Task 5: Wire Edit button in `TaskDetail` to open `EditSheet` (AC: 2, 3)
-  - [ ] In `TaskDetail.tsx`, add local state: `const [editOpen, setEditOpen] = useState(false)`
-  - [ ] Render `<EditSheet open={editOpen} onClose={() => setEditOpen(false)} task={task} />` below the page layout
-  - [ ] Edit button `onClick`: `setEditOpen(true)`
-  - [ ] After `EditSheet` closes (onClose), the `useTaskQuery(id)` cache will already be invalidated by `useUpdateTask` — no manual refetch needed
+- [x] Task 5: Wire Edit button in `TaskDetail` to open `EditSheet` (AC: 2, 3)
+  - [x] In `TaskDetail.tsx`, add local state: `const [editOpen, setEditOpen] = useState(false)`
+  - [x] Render `<EditSheet open={editOpen} onClose={() => setEditOpen(false)} task={task} />` below the page layout
+  - [x] Edit button `onClick`: `setEditOpen(true)`
+  - [x] After `EditSheet` closes (onClose), the `useTaskQuery(id)` cache will already be invalidated by `useUpdateTask` — no manual refetch needed
 
-- [ ] Task 6: Add page transition CSS (AC: 1, 4)
-  - [ ] Add slide transition classes in `src/index.css` using CSS `@keyframes` or Tailwind `motion-safe:` variant
-  - [ ] **Simple approach (preferred):** Use CSS View Transitions API if supported, or apply `transition-all duration-300` on route wrapper — React Router v7 supports View Transitions via `<RouterProvider future={{ v7_startTransition: true }}>`
-  - [ ] **Minimum viable:** Ensure no jarring flash on navigation — even just `bg-zinc-900` on the page root prevents white flashes. If full slide animation is complex, defer the animation polish and ship functional navigation. The AC says "slide-left push transition" but functional navigation without the animation satisfies the MVP.
-  - [ ] Do NOT install Framer Motion or any animation library — use CSS only
+- [x] Task 6: Add page transition CSS (AC: 1, 4)
+  - [x] Add slide transition classes in `src/index.css` using CSS `@keyframes` or Tailwind `motion-safe:` variant
+  - [x] **Simple approach (preferred):** Use CSS View Transitions API if supported, or apply `transition-all duration-300` on route wrapper — React Router v7 supports View Transitions via `<RouterProvider future={{ v7_startTransition: true }}>`
+  - [x] **Minimum viable:** Ensure no jarring flash on navigation — even just `bg-zinc-900` on the page root prevents white flashes. If full slide animation is complex, defer the animation polish and ship functional navigation. The AC says "slide-left push transition" but functional navigation without the animation satisfies the MVP.
+  - [x] Do NOT install Framer Motion or any animation library — use CSS only
 
-- [ ] Task 7: Verify and test (AC: 1–5)
-  - [ ] Start backend: `cd backend && uv run uvicorn app.main:app --reload`
-  - [ ] Start frontend: `cd frontend && npm run dev`
-  - [ ] Create a task (Story 1.4 flow) → tap its TaskCard → verify navigation to `/tasks/{id}`
-  - [ ] Verify task name, deadline (local time), and description render correctly on detail view
-  - [ ] Tap Edit → sheet opens pre-populated → change name → tap Save → sheet closes → detail view shows updated name
-  - [ ] Verify both `["tasks"]` and `["tasks", id]` caches are invalidated (task list reflects edit too)
-  - [ ] Tap back arrow → returns to task list
-  - [ ] TypeScript: `cd frontend && npx tsc --noEmit` — zero errors
-  - [ ] Lint: `cd frontend && npm run lint` — passes clean
+- [x] Task 7: Verify and test (AC: 1–5)
+  - [x] Start backend: `cd backend && uv run uvicorn app.main:app --reload`
+  - [x] Start frontend: `cd frontend && npm run dev`
+  - [x] Create a task (Story 1.4 flow) → tap its TaskCard → verify navigation to `/tasks/{id}`
+  - [x] Verify task name, deadline (local time), and description render correctly on detail view
+  - [x] Tap Edit → sheet opens pre-populated → change name → tap Save → sheet closes → detail view shows updated name
+  - [x] Verify both `["tasks"]` and `["tasks", id]` caches are invalidated (task list reflects edit too)
+  - [x] Tap back arrow → returns to task list
+  - [x] TypeScript: `cd frontend && npx tsc --noEmit` — zero errors
+  - [x] Lint: `cd frontend && npm run lint` — passes clean
 
 ## Dev Notes
 
@@ -520,4 +520,33 @@ Story context engine analysis completed — comprehensive developer guide create
 - PATCH is partial — do not send all fields, only changed ones
 - Both `["tasks"]` and `["tasks", taskId]` must be invalidated on update
 
+Implementation completed (2026-05-24):
+- Added `useTaskQuery` and `useUpdateTask` hooks to `useTasks.ts`; queryClient singleton used throughout
+- Updated TaskCard with `<Link>` navigation; completion button preserved outside Link per HTML spec
+- Implemented full TaskDetail page with loading/error/read-only states; ChevronLeft from lucide-react for back nav
+- Created EditSheet using inner `EditForm` component with `key` reset pattern (avoids setState-in-effect lint error)
+- Added View Transitions CSS keyframes in `index.css` using `@supports (view-transition-name: none)` for progressive enhancement
+- All 6 tests pass (5 existing updated for MemoryRouter; 1 new navigation test added)
+- TypeScript: 0 errors; ESLint: 0 errors
+
 ### File List
+
+- frontend/src/features/tasks/useTasks.ts (modified)
+- frontend/src/features/tasks/TaskCard.tsx (modified)
+- frontend/src/features/tasks/TaskCard.test.tsx (modified)
+- frontend/src/features/tasks/TaskDetail.tsx (modified)
+- frontend/src/features/voice/EditSheet.tsx (new)
+- frontend/src/index.css (modified)
+
+### Review Findings
+
+- [x] [Review][Decision] PATCH sends all fields unconditionally — resolved: implemented field diffing; only changed fields sent [frontend/src/features/voice/EditSheet.tsx — handleSave]
+- [x] [Review][Patch] Name input suppresses focus ring with `focus-visible:ring-0` [frontend/src/features/voice/EditSheet.tsx — name input className]
+- [x] [Review][Patch] Save/Cancel buttons use `ring-offset-zinc-700` instead of `ring-offset-zinc-900` [frontend/src/features/voice/EditSheet.tsx — Save and Cancel button classNames]
+- [x] [Review][Patch] Description textarea has `outline-none` with no `focus-visible:ring-*` — violates AC5 [frontend/src/features/voice/EditSheet.tsx — textarea className]
+- [x] [Review][Patch] `useUpdateTask` onSuccess uses `setQueryData` instead of `invalidateQueries` for `["tasks", id]` — stale data won't be re-fetched from server [frontend/src/features/tasks/useTasks.ts — onSuccess]
+- [x] [Review][Patch] Silent catch in handleSave gives user no error feedback on save failure [frontend/src/features/voice/EditSheet.tsx — handleSave catch block]
+- [x] [Review][Patch] `isError` checked before `isLoading` in guard — transient network errors flash "Task not found" during retry [frontend/src/features/tasks/TaskDetail.tsx line 16]
+- [x] [Review][Patch] Missing newline at end of file [frontend/src/index.css]
+- [x] [Review][Defer] View transition CSS doesn't distinguish push (→) vs pop (←) direction — both animate slide-in-from-right [frontend/src/index.css] — deferred, pre-existing CSS limitation; View Transitions API doesn't expose navigation direction without custom routing wrappers
+- [x] [Review][Defer] `navigate(-1)` on error path can exit SPA if user arrived via direct/shared link [frontend/src/features/tasks/TaskDetail.tsx] — deferred, pre-existing pattern across codebase; would need global history guard

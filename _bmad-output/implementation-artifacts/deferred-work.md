@@ -39,3 +39,8 @@
 
 - Cannot clear/unset deadline once set in DeadlineChip — `if (e.target.value)` guard silently ignores picker dismissal with no value; user must reopen and re-select. Acceptable for v1. [frontend/src/features/voice/DeadlineChip.tsx]
 - `key={String(open)}` may unmount SheetForm during Radix slide-out animation, causing brief visual flash (form disappears before sheet closes). Low user impact, acceptable for v1. [frontend/src/features/voice/ConfirmationSheet.tsx]
+
+## Deferred from: code review of 1-5-task-detail-edit (2026-05-24)
+
+- View transition CSS doesn't distinguish push (→) vs pop (←) navigation direction — both animate slide-in-from-right. CSS View Transitions API doesn't expose direction without custom routing wrappers; would require navigator.navigate() integration or JS-controlled class toggling. [frontend/src/index.css]
+- `navigate(-1)` on error path can navigate the user outside the SPA if they arrived via direct/shared link or bookmark. Would need a history-length guard (`window.history.length > 1`) or fallback to `navigate('/')`. Consistent with existing pattern elsewhere. [frontend/src/features/tasks/TaskDetail.tsx]

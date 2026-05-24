@@ -127,3 +127,23 @@
     @apply font-sans;
     }
 }
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-to-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@supports (view-transition-name: none) {
+  ::view-transition-new(root) {
+    animation: slide-in-from-right 300ms ease-out;
+  }
+
+  ::view-transition-old(root) {
+    animation: slide-out-to-right 300ms ease-out;
+  }
+}

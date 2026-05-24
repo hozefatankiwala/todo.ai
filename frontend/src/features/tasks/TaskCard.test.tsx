@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import TaskCard from './TaskCard'
 import type { Task } from './types'
 
@@ -16,16 +17,24 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   }
 }
 
+function renderCard(task: Task) {
+  return render(
+    <MemoryRouter>
+      <ul><TaskCard task={task} /></ul>
+    </MemoryRouter>,
+  )
+}
+
 describe('TaskCard', () => {
   it('renders task name', () => {
-    render(<ul><TaskCard task={makeTask()} /></ul>)
+    renderCard(makeTask())
     expect(screen.getByText('Buy groceries')).toBeInTheDocument()
   })
 
   it('renders formatted deadline', () => {
     const isoDate = new Date(Date.now() + 86400000).toISOString()
     const task = makeTask({ deadline_at: isoDate })
-    render(<ul><TaskCard task={task} /></ul>)
+    renderCard(task)
     const date = new Date(isoDate)
     const datePart = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
     const timePart = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
@@ -35,21 +44,28 @@ describe('TaskCard', () => {
 
   it('applies amber border for overdue tasks', () => {
     const task = makeTask({ deadline_at: new Date(Date.now() - 86400000).toISOString() })
-    render(<ul><TaskCard task={task} /></ul>)
-    const listitem = screen.getByRole('listitem')
-    expect(listitem.className).toContain('border-amber-500')
+    renderCard(task)
+    const link = screen.getByRole('link')
+    expect(link.className).toContain('border-amber-500')
   })
 
   it('does NOT apply amber border for non-overdue tasks', () => {
     const task = makeTask({ deadline_at: new Date(Date.now() + 86400000).toISOString() })
-    render(<ul><TaskCard task={task} /></ul>)
-    const listitem = screen.getByRole('listitem')
-    expect(listitem.className).not.toContain('border-amber-500')
+    renderCard(task)
+    const link = screen.getByRole('link')
+    expect(link.className).not.toContain('border-amber-500')
   })
 
   it('has accessible aria-label on the completion button', () => {
     const task = makeTask({ name: 'Test task' })
-    render(<ul><TaskCard task={task} /></ul>)
+    renderCard(task)
     expect(screen.getByLabelText('Mark complete: Test task')).toBeInTheDocument()
+  })
+
+  it('navigates to task detail URL', () => {
+    const task = makeTask({ id: 42 })
+    renderCard(task)
+    const link = screen.getByRole('link')
+    expect(link).toHaveAttribute('href', '/tasks/42')
   })
 })
