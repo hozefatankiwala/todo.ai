@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
-import { useTaskQuery } from './useTasks'
+import { useTaskQuery, useCompleteTask } from './useTasks'
 import { formatDeadline } from '@/lib/dateUtils'
 import EditSheet from '@/features/voice/EditSheet'
 
@@ -10,8 +10,10 @@ export default function TaskDetail() {
   const navigate = useNavigate()
   const id = Number(taskId)
   const [editOpen, setEditOpen] = useState(false)
+  const [completeError, setCompleteError] = useState(false)
 
   const { data: task, isLoading, isError } = useTaskQuery(id)
+  const completeTask = useCompleteTask()
 
   if (isNaN(id)) {
     return (
@@ -96,6 +98,28 @@ export default function TaskDetail() {
         >
           Edit
         </button>
+
+        {/* Mark complete button */}
+        <button
+          type="button"
+          onClick={async () => {
+            setCompleteError(false)
+            try {
+              await completeTask.mutateAsync({ id: task.id })
+              navigate('/')
+            } catch {
+              setCompleteError(true)
+            }
+          }}
+          disabled={completeTask.isPending}
+          aria-disabled={completeTask.isPending}
+          className="w-full mt-3 bg-violet-500 text-white rounded-2xl py-3 font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:opacity-50"
+        >
+          {completeTask.isPending ? 'Completing…' : 'Mark complete'}
+        </button>
+        {completeError && (
+          <p className="text-red-400 text-sm text-center mt-2">Failed to complete task. Try again.</p>
+        )}
       </div>
 
       <EditSheet open={editOpen} onClose={() => setEditOpen(false)} task={task!} />

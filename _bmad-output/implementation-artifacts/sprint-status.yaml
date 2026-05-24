@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-24
-last_updated: 2026-05-24 (story 1-6 ready-for-dev)
+last_updated: 2026-05-24 (story 1-7 ready-for-dev)
 project: simple-todo
 project_key: NOKEY
 tracking_system: file-system
@@ -49,8 +49,8 @@ development_status:
   1-3-frontend-foundation-task-list: done
   1-4-text-task-creation: done
   1-5-task-detail-edit: done
-  1-6-task-completion-archive: ready-for-dev
-  1-7-task-deletion: backlog
+  1-6-task-completion-archive: done
+  1-7-task-deletion: ready-for-dev
   epic-1-retrospective: optional
 
   # Epic 2: Push Notifications & Reminders

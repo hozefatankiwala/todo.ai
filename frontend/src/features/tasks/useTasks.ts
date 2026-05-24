@@ -61,3 +61,34 @@ export function useUpdateTask() {
     },
   })
 }
+
+export function useCompleteTask() {
+  return useMutation<void, Error, { id: number }>({
+    mutationFn: async ({ id }) => {
+      await api.post(`/api/v1/tasks/${id}/complete`)
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'archive'] })
+    },
+  })
+}
+
+export function useArchiveQuery(enabled = true) {
+  return useQuery<Task[]>({
+    queryKey: ['tasks', 'archive'],
+    enabled,
+    queryFn: async () => {
+      const { data } = await api.get<Task[]>('/api/v1/tasks/', {
+        params: { include_archived: true },
+      })
+      return data
+        .filter((t) => t.is_completed)
+        .sort((a, b) => {
+          if (!a.completed_at || !b.completed_at) return 0
+          return b.completed_at.localeCompare(a.completed_at)
+        })
+    },
+  })
+}

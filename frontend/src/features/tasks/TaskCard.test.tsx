@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import TaskCard from './TaskCard'
 import type { Task } from './types'
 
@@ -18,10 +19,13 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 }
 
 function renderCard(task: Task) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
-    <MemoryRouter>
-      <ul><TaskCard task={task} /></ul>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <ul><TaskCard task={task} /></ul>
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 

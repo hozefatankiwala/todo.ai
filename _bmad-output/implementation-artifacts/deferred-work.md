@@ -44,3 +44,11 @@
 
 - View transition CSS doesn't distinguish push (→) vs pop (←) navigation direction — both animate slide-in-from-right. CSS View Transitions API doesn't expose direction without custom routing wrappers; would require navigator.navigate() integration or JS-controlled class toggling. [frontend/src/index.css]
 - `navigate(-1)` on error path can navigate the user outside the SPA if they arrived via direct/shared link or bookmark. Would need a history-length guard (`window.history.length > 1`) or fallback to `navigate('/')`. Consistent with existing pattern elsewhere. [frontend/src/features/tasks/TaskDetail.tsx]
+
+## Deferred from: code review of 1-6-task-completion-archive (2026-05-24)
+
+- `formatDeadline`/`isOverdue` pass Invalid Date through silently — pre-existing, tracked in earlier entries. [frontend/src/lib/dateUtils.ts]
+- `useArchiveQuery` unbounded payload grows with completed task count — add pagination when data volume warrants (Story 2.1+). [frontend/src/features/tasks/useTasks.ts]
+- `null completed_at` sort non-determinism — tasks with null `completed_at` compare as equal; shouldn't occur per API contract but worth hardening in a data-integrity pass. [frontend/src/features/tasks/useTasks.ts]
+- Multi-touch swipe miscalculation — simultaneous touches can produce a spurious swipe delta; acceptable edge case for v1. [frontend/src/features/tasks/TaskCard.tsx]
+- Swipe does not animate progressively (no touchmove handler) — snaps on release rather than sliding under the finger; upgrade in a UX polish story. [frontend/src/features/tasks/TaskCard.tsx]
