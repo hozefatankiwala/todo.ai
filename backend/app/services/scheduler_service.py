@@ -1,5 +1,5 @@
 import json
-from datetime import timedelta
+from datetime import UTC, timedelta
 
 from app.scheduler.jobs import send_notification
 from app.scheduler.setup import scheduler
@@ -23,7 +23,8 @@ def schedule_reminders(task) -> None:
     """Schedule one APScheduler job per offset for a task."""
     offsets = _parse_offsets(task.offsets)
     for offset in offsets:
-        fire_at = task.deadline_at - timedelta(minutes=offset)
+        deadline = task.deadline_at.replace(tzinfo=UTC) if task.deadline_at.tzinfo is None else task.deadline_at
+        fire_at = deadline - timedelta(minutes=offset)
         scheduler.add_job(
             send_notification,
             trigger="date",

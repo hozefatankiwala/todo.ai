@@ -28,6 +28,7 @@ def send_web_push(subscription, payload: dict) -> None:
             data=json.dumps(payload),
             vapid_private_key=settings.vapid_private_key,
             vapid_claims={"sub": f"mailto:{settings.vapid_claim_email}"},
+            content_encoding="aes128gcm",
         )
     except WebPushException as e:
         logger.error("Push delivery failed (WebPushException): %s", e)

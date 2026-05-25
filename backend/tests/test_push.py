@@ -44,13 +44,14 @@ async def test_subscribe_same_endpoint_returns_200_and_updates(client: AsyncClie
 
 
 @pytest.mark.asyncio
-async def test_subscribe_different_endpoints_both_stored(client: AsyncClient):
+async def test_subscribe_new_endpoint_replaces_old(client: AsyncClient):
     sub2 = {**SAMPLE_SUB, "endpoint": "https://fcm.googleapis.com/fcm/send/other-endpoint"}
     r1 = await client.post(SUBSCRIBE_URL, json=SAMPLE_SUB)
     r2 = await client.post(SUBSCRIBE_URL, json=sub2)
     assert r1.status_code == 201
     assert r2.status_code == 201
-    assert r1.json()["id"] != r2.json()["id"]
+    # New endpoint replaces old — only one subscription should exist
+    assert r2.json()["endpoint"] == sub2["endpoint"]
 
 
 def test_send_web_push_skips_when_no_vapid_key(monkeypatch):

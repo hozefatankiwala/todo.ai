@@ -5,8 +5,10 @@ import { useTaskQuery, useCompleteTask, useDeleteTask } from './useTasks'
 import DeleteDialog from './DeleteDialog'
 import { formatDeadline } from '@/lib/dateUtils'
 import EditSheet from '@/features/voice/EditSheet'
+import { useDeepLink } from '@/hooks/useDeepLink'
 
 export default function TaskDetail() {
+  useDeepLink()
   const { taskId } = useParams()
   const navigate = useNavigate()
   const id = Number(taskId)
@@ -52,10 +54,10 @@ export default function TaskDetail() {
     return (
       <div className="min-h-screen bg-zinc-900">
         <div className="max-w-lg mx-auto px-4 pt-6">
-          <p className="text-red-400 text-sm mb-4">Task not found.</p>
+          <p className="text-red-400 text-sm mb-4">This task no longer exists</p>
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="text-violet-400 text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 rounded"
           >
             ← Back to tasks

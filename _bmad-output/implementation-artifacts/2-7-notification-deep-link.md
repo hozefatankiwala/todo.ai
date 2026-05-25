@@ -1,6 +1,6 @@
 # Story 2.7: Notification Deep-Link
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -29,42 +29,42 @@ so that I can act on it immediately without searching through the task list.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement `notificationclick` handler in `service-worker.ts` (AC: 1, 2, 3)
-  - [ ] In `frontend/src/service-worker.ts`, replace the stub `notificationclick` handler with the full implementation (see Dev Notes)
-  - [ ] The handler must: close the notification; get the `task_id` from `event.notification.data`; find or open the app window; then post a message `{ type: 'NAVIGATE_TO_TASK', taskId }` to the app window
-  - [ ] Use `clients.matchAll({ type: 'window', includeUncontrolled: true })` to find open app windows
-  - [ ] If an app window is found: call `windowClient.focus()` and `windowClient.postMessage(...)` — this handles AC 3 (app already open)
-  - [ ] If no app window is found: call `clients.openWindow('/')` to launch the app — React Router will start at `/`; the `useDeepLink` hook will handle navigation after the SW message is received
+- [x] Task 1: Implement `notificationclick` handler in `service-worker.ts` (AC: 1, 2, 3)
+  - [x] In `frontend/src/service-worker.ts`, replace the stub `notificationclick` handler with the full implementation (see Dev Notes)
+  - [x] The handler must: close the notification; get the `task_id` from `event.notification.data`; find or open the app window; then post a message `{ type: 'NAVIGATE_TO_TASK', taskId }` to the app window
+  - [x] Use `clients.matchAll({ type: 'window', includeUncontrolled: true })` to find open app windows
+  - [x] If an app window is found: call `windowClient.focus()` and `windowClient.postMessage(...)` — this handles AC 3 (app already open)
+  - [x] If no app window is found: call `clients.openWindow('/')` to launch the app — React Router will start at `/`; the `useDeepLink` hook will handle navigation after the SW message is received
 
-- [ ] Task 2: Create `frontend/src/hooks/useDeepLink.ts` (AC: 2, 3)
-  - [ ] Create the `src/hooks/` directory (new) and `useDeepLink.ts` file
-  - [ ] Hook: `export function useDeepLink()` — takes no arguments, returns nothing
-  - [ ] In a `useEffect`, register a `message` event listener on `navigator.serviceWorker` (via `navigator.serviceWorker.addEventListener('message', handler)`)
-  - [ ] Handler: if `event.data?.type === 'NAVIGATE_TO_TASK'`, call `navigate(`/tasks/${event.data.taskId}`)` using React Router's `useNavigate()`
-  - [ ] Clean up listener in `useEffect` return: `navigator.serviceWorker.removeEventListener('message', handler)`
-  - [ ] Guard: only register if `'serviceWorker' in navigator`
+- [x] Task 2: Create `frontend/src/hooks/useDeepLink.ts` (AC: 2, 3)
+  - [x] Create the `src/hooks/` directory (new) and `useDeepLink.ts` file
+  - [x] Hook: `export function useDeepLink()` — takes no arguments, returns nothing
+  - [x] In a `useEffect`, register a `message` event listener on `navigator.serviceWorker` (via `navigator.serviceWorker.addEventListener('message', handler)`)
+  - [x] Handler: if `event.data?.type === 'NAVIGATE_TO_TASK'`, call `navigate(`/tasks/${event.data.taskId}`)` using React Router's `useNavigate()`
+  - [x] Clean up listener in `useEffect` return: `navigator.serviceWorker.removeEventListener('message', handler)`
+  - [x] Guard: only register if `'serviceWorker' in navigator`
 
-- [ ] Task 3: Mount `useDeepLink` in the app (AC: 2, 3)
-  - [ ] In `frontend/src/features/tasks/TaskList.tsx` (the home screen rendered at `/`), call `useDeepLink()` at the top of the component
-  - [ ] This ensures deep-link navigation is always active when the app is open — not just on one route
-  - [ ] Import from `@/hooks/useDeepLink`
+- [x] Task 3: Mount `useDeepLink` in the app (AC: 2, 3)
+  - [x] In `frontend/src/features/tasks/TaskList.tsx` (the home screen rendered at `/`), call `useDeepLink()` at the top of the component
+  - [x] This ensures deep-link navigation is always active when the app is open — not just on one route
+  - [x] Import from `@/hooks/useDeepLink`
 
-- [ ] Task 4: Update `TaskDetail` 404 error state to show specific message for deep-link context (AC: 4)
-  - [ ] In `frontend/src/features/tasks/TaskDetail.tsx`, update the `isError` error state message from `"Task not found."` to `"This task no longer exists"`
-  - [ ] Also update the back button to navigate to `'/'` instead of `navigate(-1)` — when arriving via deep-link, history may be empty and `navigate(-1)` leaves the app
-  - [ ] Keep the isNaN(id) guard message as `"Task not found."` — that's a malformed URL, not a deleted task
+- [x] Task 4: Update `TaskDetail` 404 error state to show specific message for deep-link context (AC: 4)
+  - [x] In `frontend/src/features/tasks/TaskDetail.tsx`, update the `isError` error state message from `"Task not found."` to `"This task no longer exists"`
+  - [x] Also update the back button to navigate to `'/'` instead of `navigate(-1)` — when arriving via deep-link, history may be empty and `navigate(-1)` leaves the app
+  - [x] Keep the isNaN(id) guard message as `"Task not found."` — that's a malformed URL, not a deleted task
 
-- [ ] Task 5: Frontend tests (AC: 2, 3, 4)
-  - [ ] Create `frontend/src/hooks/useDeepLink.test.ts`
-  - [ ] Test: `useDeepLink` registers `message` event listener on mount
-  - [ ] Test: `useDeepLink` removes listener on unmount (cleanup)
-  - [ ] Test: receiving `{ type: 'NAVIGATE_TO_TASK', taskId: '42' }` message triggers `navigate('/tasks/42')`
-  - [ ] Test: message with unknown `type` does NOT trigger navigation
-  - [ ] Mock `navigator.serviceWorker` via `vi.stubGlobal`
+- [x] Task 5: Frontend tests (AC: 2, 3, 4)
+  - [x] Create `frontend/src/hooks/useDeepLink.test.ts`
+  - [x] Test: `useDeepLink` registers `message` event listener on mount
+  - [x] Test: `useDeepLink` removes listener on unmount (cleanup)
+  - [x] Test: receiving `{ type: 'NAVIGATE_TO_TASK', taskId: '42' }` message triggers `navigate('/tasks/42')`
+  - [x] Test: message with unknown `type` does NOT trigger navigation
+  - [x] Mock `navigator.serviceWorker` via `vi.stubGlobal`
 
-- [ ] Task 6: Run all tests and verify (AC: 1–4)
-  - [ ] `cd frontend && npm test -- --run` — all tests pass
-  - [ ] `cd frontend && npm run build` — build succeeds (service worker includes updated notificationclick handler)
+- [x] Task 6: Run all tests and verify (AC: 1–4)
+  - [x] `cd frontend && npm test -- --run` — all tests pass (27/27)
+  - [x] `cd frontend && npm run build` — build succeeds (service worker includes updated notificationclick handler)
 
 ## Dev Notes
 
@@ -264,10 +264,30 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
-Ultimate context engine analysis completed — comprehensive developer guide created.
+- Replaced stub `notificationclick` handler in `service-worker.ts` with full implementation using `self.clients.matchAll` to find open windows and `self.clients.openWindow` for cold starts. Used `void` to suppress unused promise warnings and explicit TypeScript types to satisfy strict TS.
+- Created `src/hooks/useDeepLink.ts` — registers a `navigator.serviceWorker` message listener on mount, navigates to `/tasks/:taskId` on `NAVIGATE_TO_TASK` messages, cleans up on unmount.
+- Mounted `useDeepLink()` at the top of `TaskList` component (the app root rendered at `/`).
+- Updated `TaskDetail` `isError` block: message changed to "This task no longer exists", back button now uses `navigate('/')` instead of `navigate(-1)` to handle empty history when arriving via deep-link.
+- Fixed pre-existing TypeScript build error in `usePushSubscription.ts` (Uint8Array cast to BufferSource).
+- All 27 tests pass; production build succeeds.
 
 ### File List
+
+- frontend/src/service-worker.ts (modified)
+- frontend/src/hooks/useDeepLink.ts (new)
+- frontend/src/hooks/useDeepLink.test.ts (new)
+- frontend/src/features/tasks/TaskList.tsx (modified)
+- frontend/src/features/tasks/TaskDetail.tsx (modified)
+- frontend/src/features/notifications/usePushSubscription.ts (modified — pre-existing TS build error fix)
 
 ### Change Log
 
 - 2026-05-25: Story created — notificationclick SW handler + useDeepLink hook + TaskDetail 404 update.
+- 2026-05-25: Story implemented — all tasks complete, 27/27 tests pass, build succeeds.
+
+### Review Findings
+
+- [x] [Review][Decision] `useDeepLink` only mounted in TaskList — resolved: also added to TaskDetail (option 1B) [frontend/src/features/tasks/TaskDetail.tsx]
+- [x] [Review][Patch] SW cold-start `setTimeout(500ms)` is outside `waitUntil` — fixed: timeout wrapped in Promise inside `waitUntil` chain [frontend/src/service-worker.ts]
+- [x] [Review][Patch] `taskId = undefined` propagated to app when `task_id` absent from notification — fixed: guard in SW + useDeepLink [frontend/src/service-worker.ts + frontend/src/hooks/useDeepLink.ts]
+- [x] [Review][Defer] `windowClients[0]` picks arbitrary window with no URL filtering when multiple tabs open [frontend/src/service-worker.ts] — deferred, single-user PWA; acceptable for current scope

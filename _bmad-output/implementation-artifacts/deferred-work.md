@@ -86,3 +86,8 @@
 - `parse_offsets` silently returns `[]` on corrupt DB JSON with no log — data loss invisible to caller. Add warning log in a future hardening story. [backend/app/schemas/task.py]
 - `hasPastWarning` not cleared reactively when offsets/deadline changes, only on Save — minor stale UX; spec ties warning to Save tap so this is intentional. [frontend/src/features/voice/ConfirmationSheet.tsx, EditSheet.tsx]
 - `EditSheet` dirty-check baseline shifts when React Query refetches `task` prop mid-session — spurious save when task is refetched between edits; acceptable for MVP. [frontend/src/features/voice/EditSheet.tsx]
+
+## Deferred from: code review of 2-7-notification-deep-link and 2-8-trust-banner (2026-05-25)
+
+- `windowClients[0]` picks arbitrary window with no URL filtering when multiple tabs are open — single-user PWA, acceptable scope. [frontend/src/service-worker.ts]
+- `formatBannerMessage` with invalid `deadlineUtcIso` renders "Invalid Date" — not reachable at runtime since deadline is validated before save; defer to future hardening. [frontend/src/lib/offsets.ts]

@@ -1,6 +1,6 @@
 # Story 2.8: Trust Banner
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -29,41 +29,41 @@ so that I can put my phone down knowing the reminders are set without having to 
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `frontend/src/features/notifications/TrustBanner.tsx` (AC: 1, 2, 3, 4)
-  - [ ] Create the `TrustBanner` component that reads `trustBannerMessage` from `useUIStore`
-  - [ ] Render the banner with: `bg-green-950 border border-green-900 rounded-xl` styling, a checkmark icon (`lucide-react` `Check` icon), and the message text
-  - [ ] Add `aria-live="polite"` to the container element (AC 4)
-  - [ ] Implement auto-dismiss: on mount when `trustBannerMessage` is non-null, start a 3-second timeout that calls `clearTrustBanner()`; clear the timeout on unmount to prevent memory leaks
-  - [ ] Cancel and restart the timeout if the message changes while the banner is showing (handles AC 3 "does not stack" — replaces old message with new one, resets timer)
+- [x] Task 1: Create `frontend/src/features/notifications/TrustBanner.tsx` (AC: 1, 2, 3, 4)
+  - [x] Create the `TrustBanner` component that reads `trustBannerMessage` from `useUIStore`
+  - [x] Render the banner with: `bg-green-950 border border-green-900 rounded-xl` styling, a checkmark icon (`lucide-react` `Check` icon), and the message text
+  - [x] Add `aria-live="polite"` to the container element (AC 4)
+  - [x] Implement auto-dismiss: on mount when `trustBannerMessage` is non-null, start a 3-second timeout that calls `clearTrustBanner()`; clear the timeout on unmount to prevent memory leaks
+  - [x] Cancel and restart the timeout if the message changes while the banner is showing (handles AC 3 "does not stack" — replaces old message with new one, resets timer)
 
-- [ ] Task 2: Mount `TrustBanner` in `TaskList.tsx` (AC: 1, 2)
-  - [ ] In `frontend/src/features/tasks/TaskList.tsx`, import `TrustBanner` from `@/features/notifications/TrustBanner`
-  - [ ] Render `<TrustBanner />` pinned below the header — place it between the `<div className="flex items-center justify-between mb-6">` header block and the task list content, inside the `max-w-lg` container div
+- [x] Task 2: Mount `TrustBanner` in `TaskList.tsx` (AC: 1, 2)
+  - [x] In `frontend/src/features/tasks/TaskList.tsx`, import `TrustBanner` from `@/features/notifications/TrustBanner`
+  - [x] Render `<TrustBanner />` pinned below the header — place it between the `<div className="flex items-center justify-between mb-6">` header block and the task list content, inside the `max-w-lg` container div
 
-- [ ] Task 3: Wire `showTrustBanner` call into `ConfirmationSheet.tsx` (AC: 1, 2)
-  - [ ] In `frontend/src/features/voice/ConfirmationSheet.tsx`, import `useUIStore` from `@/lib/store`
-  - [ ] In `SheetForm`, destructure `showTrustBanner` from `useUIStore()`
-  - [ ] After `await createTask.mutateAsync(...)` succeeds and before `onClose()`, call `showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso!))`
-  - [ ] Implement `formatBannerMessage(offsets: number[], deadlineUtcIso: string): string` as a local helper (see Dev Notes for implementation)
+- [x] Task 3: Wire `showTrustBanner` call into `ConfirmationSheet.tsx` (AC: 1, 2)
+  - [x] In `frontend/src/features/voice/ConfirmationSheet.tsx`, import `useUIStore` from `@/lib/store`
+  - [x] In `SheetForm`, destructure `showTrustBanner` from `useUIStore()`
+  - [x] After `await createTask.mutateAsync(...)` succeeds and before `onClose()`, call `showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso!))`
+  - [x] Implement `formatBannerMessage(offsets: number[], deadlineUtcIso: string): string` as a local helper (see Dev Notes for implementation)
 
-- [ ] Task 4: Wire `showTrustBanner` call into `EditSheet.tsx` (AC: 1, 2)
-  - [ ] In `frontend/src/features/voice/EditSheet.tsx`, import `useUIStore` from `@/lib/store`
-  - [ ] In `EditForm`, destructure `showTrustBanner` from `useUIStore()`
-  - [ ] After `await updateTask.mutateAsync(payload)` succeeds and before `onClose()`, call `showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso))`
-  - [ ] Same `formatBannerMessage` helper — extract it to `@/lib/offsets.ts` so both sheets can import it (see Dev Notes)
+- [x] Task 4: Wire `showTrustBanner` call into `EditSheet.tsx` (AC: 1, 2)
+  - [x] In `frontend/src/features/voice/EditSheet.tsx`, import `useUIStore` from `@/lib/store`
+  - [x] In `EditForm`, destructure `showTrustBanner` from `useUIStore()`
+  - [x] After `await updateTask.mutateAsync(payload)` succeeds and before `onClose()`, call `showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso))`
+  - [x] Same `formatBannerMessage` helper — extracted to `@/lib/offsets.ts` so both sheets can import it
 
-- [ ] Task 5: Frontend tests (AC: 1, 2, 3, 4)
-  - [ ] Create `frontend/src/features/notifications/TrustBanner.test.tsx`
-  - [ ] Test: renders with message when `trustBannerMessage` is set in the store
-  - [ ] Test: renders nothing (or empty) when `trustBannerMessage` is null
-  - [ ] Test: has `aria-live="polite"` attribute
-  - [ ] Test: calls `clearTrustBanner` after 3 seconds (use `vi.useFakeTimers()` and `vi.advanceTimersByTime(3000)`)
-  - [ ] Test: resets the 3-second timer when message changes (advancing 2s then changing message then advancing 3s should still show banner; advancing 3s more after that clears it)
-  - [ ] Use `renderWithProviders` pattern with real Zustand store — call `useUIStore.setState({ trustBannerMessage: 'test' })` before render
+- [x] Task 5: Frontend tests (AC: 1, 2, 3, 4)
+  - [x] Create `frontend/src/features/notifications/TrustBanner.test.tsx`
+  - [x] Test: renders with message when `trustBannerMessage` is set in the store
+  - [x] Test: renders nothing (or empty) when `trustBannerMessage` is null
+  - [x] Test: has `aria-live="polite"` attribute
+  - [x] Test: calls `clearTrustBanner` after 3 seconds (use `vi.useFakeTimers()` and `vi.advanceTimersByTime(3000)`)
+  - [x] Test: resets the 3-second timer when message changes (advancing 2s then changing message then advancing 3s should still show banner; advancing 3s more after that clears it)
+  - [x] Use real Zustand store — call `useUIStore.setState({ trustBannerMessage: 'test' })` before render
 
-- [ ] Task 6: Run all tests and verify (AC: 1–4)
-  - [ ] `cd frontend && npm test -- --run` — all tests pass
-  - [ ] `cd frontend && npm run build` — build succeeds
+- [x] Task 6: Run all tests and verify (AC: 1–4)
+  - [x] `cd frontend && npm test -- --run` — all 32 tests pass
+  - [x] `cd frontend && npm run build` — build succeeds
 
 ## Dev Notes
 
@@ -365,10 +365,30 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
-Ultimate context engine analysis completed — comprehensive developer guide created.
+- Created `TrustBanner.tsx` in `src/features/notifications/` — reads `trustBannerMessage` from Zustand store, auto-dismisses after 3s via `useRef`+`setTimeout`, resets timer on message change, returns null when no message.
+- Added `formatBannerMessage()` to `src/lib/offsets.ts` — formats reminder times using `toLocaleString` with `weekday:'short'` + `hour:'numeric'`, omits minute display for round hours.
+- Mounted `<TrustBanner />` in `TaskList.tsx` between header and task list content.
+- Wired `showTrustBanner(formatBannerMessage(...))` in both `ConfirmationSheet.tsx` and `EditSheet.tsx` after successful `mutateAsync`, before `onClose()`.
+- 5 TrustBanner tests cover: message render, null render, aria-live, 3s auto-dismiss, timer reset on message change.
+- All 32 tests pass; production build succeeds.
 
 ### File List
+
+- frontend/src/features/notifications/TrustBanner.tsx (new)
+- frontend/src/features/notifications/TrustBanner.test.tsx (new)
+- frontend/src/lib/offsets.ts (modified — added formatBannerMessage)
+- frontend/src/features/tasks/TaskList.tsx (modified — added TrustBanner mount)
+- frontend/src/features/voice/ConfirmationSheet.tsx (modified — showTrustBanner wiring)
+- frontend/src/features/voice/EditSheet.tsx (modified — showTrustBanner wiring)
 
 ### Change Log
 
 - 2026-05-25: Story created — TrustBanner component + formatBannerMessage helper + ConfirmationSheet/EditSheet wiring.
+- 2026-05-25: Story implemented — all tasks complete, 32/32 tests pass, build succeeds.
+
+### Review Findings
+
+- [x] [Review][Decision] TrustBanner auto-dismiss: resolved with CSS fade — `opacity-0 transition-opacity duration-300` on hide, `clearTrustBanner` called after 300ms [frontend/src/features/notifications/TrustBanner.tsx]
+- [x] [Review][Patch] `aria-live` region unmounts on null — fixed: container always rendered, message content conditional inside it [frontend/src/features/notifications/TrustBanner.tsx]
+- [x] [Review][Patch] `toLocaleString` without `hour12: true` — fixed: added `hour12: true` [frontend/src/lib/offsets.ts]
+- [x] [Review][Defer] `formatBannerMessage` with invalid `deadlineUtcIso` renders "Invalid Date" — deferred, deadline is validated before save; runtime impossible in current call-sites

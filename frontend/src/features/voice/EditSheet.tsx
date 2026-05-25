@@ -3,6 +3,8 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { useUpdateTask } from '@/features/tasks/useTasks'
 import { usePushSubscription } from '@/features/notifications/usePushSubscription'
+import { useUIStore } from '@/lib/store'
+import { formatBannerMessage } from '@/lib/offsets'
 import DeadlineChip from './DeadlineChip'
 import OffsetSelector from './OffsetSelector'
 import type { Task } from '@/features/tasks/types'
@@ -27,6 +29,7 @@ function EditForm({ task, onClose }: EditFormProps) {
   const [notifBlocked, setNotifBlocked] = useState(false)
   const updateTask = useUpdateTask()
   const { requestAndSubscribe } = usePushSubscription()
+  const { showTrustBanner } = useUIStore()
 
   const canSave = name.trim().length > 0 && deadlineUtcIso.length > 0
 
@@ -60,6 +63,7 @@ function EditForm({ task, onClose }: EditFormProps) {
     }
     try {
       await updateTask.mutateAsync(payload)
+      showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso))
       onClose()
     } catch {
       // updateTask.isError is true; error message rendered below

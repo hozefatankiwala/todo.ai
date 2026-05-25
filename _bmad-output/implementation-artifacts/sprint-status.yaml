@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-24
-last_updated: 2026-05-25 (stories 2-4, 2-5, 2-6 done)
+last_updated: 2026-05-25 (story 3-1 done)
 project: simple-todo
 project_key: NOKEY
 tracking_system: file-system
@@ -61,13 +61,13 @@ development_status:
   2-4-notification-scheduling-on-task-mutations: done
   2-5-push-permission-subscription-flow: done
   2-6-notification-delivery-content: done
-  2-7-notification-deep-link: ready-for-dev
-  2-8-trust-banner: ready-for-dev
+  2-7-notification-deep-link: done
+  2-8-trust-banner: done
   epic-2-retrospective: optional
 
   # Epic 3: PWA & Production Deployment
-  epic-3: backlog
-  3-1-pwa-manifest-service-worker: backlog
+  epic-3: in-progress
+  3-1-pwa-manifest-service-worker: done
   3-2-ios-pwa-install-prompt: backlog
   3-3-caddy-configuration: backlog
   3-4-railway-deployment: backlog

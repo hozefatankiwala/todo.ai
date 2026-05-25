@@ -8,6 +8,7 @@ declare const self: ServiceWorkerGlobalScope & {
 // Workbox precache manifest — injected by vite-plugin-pwa at build time
 precacheAndRoute(self.__WB_MANIFEST)
 
+
 self.addEventListener('push', (event: PushEvent) => {
   let data: { title?: string; body?: string; task_id?: string } = {}
   try {
@@ -29,5 +30,27 @@ self.addEventListener('push', (event: PushEvent) => {
 
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close()
-  // Deep-link navigation handled in Story 2.7
+  const taskId = event.notification.data?.task_id
+
+  if (!taskId) return
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      if (windowClients.length > 0) {
+        const appWindow = windowClients[0]
+        appWindow.postMessage({ type: 'NAVIGATE_TO_TASK', taskId })
+        return appWindow.focus().then(() => undefined)
+      } else {
+        return self.clients.openWindow('/').then(
+          (newWindow) =>
+            new Promise<void>((resolve) => {
+              setTimeout(() => {
+                newWindow?.postMessage({ type: 'NAVIGATE_TO_TASK', taskId })
+                resolve()
+              }, 500)
+            })
+        )
+      }
+    })
+  )
 })

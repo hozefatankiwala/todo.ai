@@ -6,8 +6,11 @@ import ArchiveSheet from './ArchiveSheet'
 import VoiceFABPlaceholder from '@/features/voice/VoiceFABPlaceholder'
 import ConfirmationSheet from '@/features/voice/ConfirmationSheet'
 import { useUIStore } from '@/lib/store'
+import { useDeepLink } from '@/hooks/useDeepLink'
+import TrustBanner from '@/features/notifications/TrustBanner'
 
 export default function TaskList() {
+  useDeepLink()
   const { data: tasks, isLoading, isError } = useTasksQuery()
   const { confirmationSheetOpen, closeConfirmationSheet } = useUIStore()
   const [archiveOpen, setArchiveOpen] = useState(false)
@@ -26,6 +29,8 @@ export default function TaskList() {
             <Archive className="h-5 w-5" />
           </button>
         </div>
+
+        <TrustBanner />
 
         {isLoading && (
           <div className="space-y-2">

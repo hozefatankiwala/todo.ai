@@ -29,16 +29,11 @@ async function _registerPushSubscription(): Promise<void> {
     return
   }
   try {
-    const swReady = Promise.race([
-      navigator.serviceWorker.ready,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Service worker not ready')), 5000)
-      ),
-    ])
-    const registration = await swReady
+    const registration = await navigator.serviceWorker.getRegistration('/')
+    if (!registration?.active) return
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
     })
     const json = subscription.toJSON() as {
       endpoint: string

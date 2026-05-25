@@ -3,7 +3,17 @@ import { vi, beforeEach, afterEach, it, expect } from 'vitest'
 
 const mockSubscribe = vi.fn()
 const mockPushManager = { subscribe: mockSubscribe }
-const mockRegistration = { pushManager: mockPushManager }
+const mockRegistration = { pushManager: mockPushManager, active: {} }
+
+function makeSwMock() {
+  return {
+    ready: Promise.resolve(mockRegistration),
+    controller: {},
+    getRegistration: vi.fn().mockResolvedValue(mockRegistration),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }
+}
 
 function stubPushSupported(permission: NotificationPermission) {
   vi.stubGlobal('Notification', {
@@ -13,7 +23,7 @@ function stubPushSupported(permission: NotificationPermission) {
   // Add PushManager to window so checkPushSupported() returns true
   vi.stubGlobal('PushManager', {})
   Object.defineProperty(navigator, 'serviceWorker', {
-    value: { ready: Promise.resolve(mockRegistration) },
+    value: makeSwMock(),
     writable: true,
     configurable: true,
   })
@@ -92,7 +102,7 @@ it('calls pushManager.subscribe on mount when permission is already granted', as
   vi.stubGlobal('Notification', { permission: 'granted', requestPermission: vi.fn() })
   vi.stubGlobal('PushManager', {})
   Object.defineProperty(navigator, 'serviceWorker', {
-    value: { ready: Promise.resolve(mockRegistration) },
+    value: makeSwMock(),
     writable: true,
     configurable: true,
   })

@@ -3,6 +3,8 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { useCreateTask } from '@/features/tasks/useTasks'
 import { usePushSubscription } from '@/features/notifications/usePushSubscription'
+import { useUIStore } from '@/lib/store'
+import { formatBannerMessage } from '@/lib/offsets'
 import DeadlineChip from './DeadlineChip'
 import OffsetSelector from './OffsetSelector'
 
@@ -25,6 +27,7 @@ function SheetForm({ onClose }: SheetFormProps) {
 
   const createTask = useCreateTask()
   const { requestAndSubscribe } = usePushSubscription()
+  const { showTrustBanner } = useUIStore()
   const canSave = name.trim().length > 0 && deadlineUtcIso !== null
 
   const handleSave = async () => {
@@ -52,6 +55,7 @@ function SheetForm({ onClose }: SheetFormProps) {
         description: description.trim() || undefined,
         offsets: selectedOffsets,
       })
+      showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso!))
       onClose()
     } catch {
       // createTask.isError will be true; error message renders below Save button
