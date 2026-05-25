@@ -1,8 +1,8 @@
-# Epic 4: Recurring Tasks
+# Epic 5: Recurring Tasks
 
 User can set a task to repeat via voice or UI picker; completing an instance auto-generates the next one with the same offsets and reminders already scheduled — no action required.
 
-## Story 4.1: Recurrence Data Model & API
+## Story 5.1: Recurrence Data Model & API
 
 As a developer,
 I want the recurrence pattern stored on tasks and the API to support the series/instance model,
@@ -29,7 +29,7 @@ So that the backend can correctly generate next instances and manage series term
 
 ---
 
-## Story 4.2: Recurrence UI — Picker & Badge
+## Story 5.2: Recurrence UI — Picker & Badge
 
 As a user,
 I want to set a recurrence pattern manually on the Confirmation Sheet and see it displayed on the task card,
@@ -60,7 +60,7 @@ So that I can configure and identify recurring tasks at a glance.
 
 ---
 
-## Story 4.3: Recurrence via Voice
+## Story 5.3: Recurrence via Voice
 
 As a user,
 I want to speak a recurring task naturally and have the recurrence pattern parsed and shown on the Confirmation Sheet,
@@ -87,7 +87,7 @@ So that setting up a standing task requires no manual configuration.
 
 ---
 
-## Story 4.4: Auto-Generation of Next Instance
+## Story 5.4: Auto-Generation of Next Instance
 
 As a user,
 I want completing a recurring task to automatically create the next occurrence with reminders already scheduled,
@@ -115,7 +115,7 @@ So that a standing task is never lost and I never have to re-enter it.
 
 ---
 
-## Story 4.5: End a Series
+## Story 5.5: End a Series
 
 As a user,
 I want to stop a recurring task series when I no longer need it,

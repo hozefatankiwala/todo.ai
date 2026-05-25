@@ -10,6 +10,7 @@ from app.config import settings
 from app.models.base import Base
 # Import all model modules here so they register on Base.metadata for autogenerate.
 from app.models import task  # noqa: F401
+from app.models import push_subscription  # noqa: F401
 
 config = context.config
 

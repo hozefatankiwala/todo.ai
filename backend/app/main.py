@@ -6,14 +6,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
+from app.routers import push as push_router
 from app.routers import tasks as tasks_router
+from app.scheduler.setup import scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Scheduler start will be added in Story 2.1
+    scheduler.start()
     yield
-    # Scheduler stop will be added in Story 2.1
+    scheduler.shutdown(wait=False)
 
 
 app = FastAPI(title="simple-todo", lifespan=lifespan)
@@ -35,6 +37,7 @@ async def http_exception_handler(request: Request, exc: FastAPIHTTPException):
 
 
 app.include_router(tasks_router.router)
+app.include_router(push_router.router)
 
 
 @app.get("/health")

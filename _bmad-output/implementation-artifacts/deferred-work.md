@@ -56,3 +56,16 @@
 ## Deferred from: code review of 1-7-task-deletion (2026-05-25)
 
 - `TaskDetail` stale-task flicker after delete — cache invalidation can cause a brief "Task not found" flash before `navigate('/')` completes; theoretical race, acceptable for v1. [frontend/src/features/tasks/TaskDetail.tsx]
+
+## Deferred from: code review of 2-1-apscheduler-sqlalchemy-job-store (2026-05-25)
+
+- No guard for past fire dates in `schedule_reminders` — `misfire_grace_time=120` is intentional; add validation when Story 2.4 wires scheduler to task mutations. [backend/app/services/scheduler_service.py:11]
+- VAPID key validity not checked at startup — log-and-swallow on delivery failure is spec-intended; startup validation is a future hardening concern. [backend/app/config.py / push_service.py]
+- `_sync_url` via `str.replace("+aiosqlite", "")` is brittle — works for the fixed SQLite URL; use `sqlalchemy.engine.make_url` if drivers ever change. [backend/app/scheduler/setup.py:6]
+
+## Deferred from: code review of 2-2-push-subscription-vapid-backend (2026-05-25)
+
+- `p256dh`/`auth` fields accept any string — no base64url format validation; add in a future security hardening story. [backend/app/schemas/push.py]
+- 410 Gone from push service silently swallowed — stale subscription pruning logic needed; future story. [backend/app/services/push_service.py:32-33]
+- No `DELETE /unsubscribe` endpoint — stale subscriptions accumulate indefinitely; add in a future story. [backend/app/routers/push.py]
+- CORS `allow_credentials` not set — pre-existing config; revisit if PWA credentialed requests fail in production. [backend/app/main.py]

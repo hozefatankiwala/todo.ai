@@ -1,8 +1,8 @@
-# Epic 5: PWA & Production Deployment
+# Epic 3: PWA & Production Deployment
 
 The app is installable to the home screen on iOS/Android, push notifications work on iOS Safari via PWA, and the app is publicly deployed on Railway with automatic HTTPS via Caddy and HTTP Basic Auth access control.
 
-## Story 5.1: PWA Manifest & Service Worker
+## Story 3.1: PWA Manifest & Service Worker
 
 As a user,
 I want to install the app to my home screen and have it behave like a native app,
@@ -32,7 +32,7 @@ So that I can launch it directly and receive push notifications on Android and d
 
 ---
 
-## Story 5.2: iOS PWA Install Prompt
+## Story 3.2: iOS PWA Install Prompt
 
 As a user on iPhone,
 I want a clear in-app prompt guiding me to install the app via Safari before I set my first reminder,
@@ -63,7 +63,7 @@ So that push notifications work on iOS without me needing to know the Safari-spe
 
 ---
 
-## Story 5.3: Caddy Configuration
+## Story 3.3: Caddy Configuration
 
 As a developer,
 I want Caddy configured to terminate HTTPS, enforce HTTP Basic Auth, and route traffic between the frontend and backend,
@@ -94,7 +94,7 @@ So that the production environment is secure and correctly wired before Railway 
 
 ---
 
-## Story 5.4: Railway Deployment
+## Story 3.4: Railway Deployment
 
 As a user,
 I want the app deployed to Railway at a public URL with a persistent database and working push notifications,

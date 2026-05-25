@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-24
-last_updated: 2026-05-25 (story 1-7 done)
+last_updated: 2026-05-25 (stories 2-3, 2-4, 2-5 ready-for-dev)
 project: simple-todo
 project_key: NOKEY
 tracking_system: file-system
@@ -55,37 +55,37 @@ development_status:
 
   # Epic 2: Push Notifications & Reminders
   epic-2: in-progress
-  2-1-apscheduler-sqlalchemy-job-store: ready-for-dev
-  2-2-push-subscription-vapid-backend: ready-for-dev
-  2-3-offset-selection-ui: backlog
-  2-4-notification-scheduling-on-task-mutations: backlog
-  2-5-push-permission-subscription-flow: backlog
+  2-1-apscheduler-sqlalchemy-job-store: done
+  2-2-push-subscription-vapid-backend: done
+  2-3-offset-selection-ui: ready-for-dev
+  2-4-notification-scheduling-on-task-mutations: ready-for-dev
+  2-5-push-permission-subscription-flow: ready-for-dev
   2-6-notification-delivery-content: backlog
   2-7-notification-deep-link: backlog
   2-8-trust-banner: backlog
   epic-2-retrospective: optional
 
-  # Epic 3: Voice Capture & AI Parsing
+  # Epic 3: PWA & Production Deployment
   epic-3: backlog
-  3-1-llm-parse-endpoint: backlog
-  3-2-voice-fab-web-speech-api: backlog
-  3-3-confirmation-sheet-with-voice-prefill: backlog
-  3-4-voice-error-handling-text-fallback: backlog
+  3-1-pwa-manifest-service-worker: backlog
+  3-2-ios-pwa-install-prompt: backlog
+  3-3-caddy-configuration: backlog
+  3-4-railway-deployment: backlog
   epic-3-retrospective: optional
 
-  # Epic 4: Recurring Tasks
+  # Epic 4: Voice Capture & AI Parsing
   epic-4: backlog
-  4-1-recurrence-data-model-api: backlog
-  4-2-recurrence-ui-picker-badge: backlog
-  4-3-recurrence-via-voice: backlog
-  4-4-auto-generation-of-next-instance: backlog
-  4-5-end-a-series: backlog
+  4-1-llm-parse-endpoint: backlog
+  4-2-voice-fab-web-speech-api: backlog
+  4-3-confirmation-sheet-with-voice-prefill: backlog
+  4-4-voice-error-handling-text-fallback: backlog
   epic-4-retrospective: optional
 
-  # Epic 5: PWA & Production Deployment
+  # Epic 5: Recurring Tasks
   epic-5: backlog
-  5-1-pwa-manifest-service-worker: backlog
-  5-2-ios-pwa-install-prompt: backlog
-  5-3-caddy-configuration: backlog
-  5-4-railway-deployment: backlog
+  5-1-recurrence-data-model-api: backlog
+  5-2-recurrence-ui-picker-badge: backlog
+  5-3-recurrence-via-voice: backlog
+  5-4-auto-generation-of-next-instance: backlog
+  5-5-end-a-series: backlog
   epic-5-retrospective: optional

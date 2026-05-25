@@ -1,6 +1,6 @@
 # Story 2.1: APScheduler & SQLAlchemy Job Store
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -29,30 +29,30 @@ so that scheduled notifications survive server restarts and redeploys without be
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `backend/app/scheduler/setup.py` — scheduler init (AC: 1, 2)
-  - [ ] Import `AsyncIOScheduler` from `apscheduler.schedulers.asyncio`
-  - [ ] Import `SQLAlchemyJobStore` from `apscheduler.jobstores.sqlalchemy`
-  - [ ] Extract the sync SQLite URL from `settings.database_url` (strip `+aiosqlite` driver prefix — SQLAlchemyJobStore requires a sync URL)
-  - [ ] Instantiate `SQLAlchemyJobStore(url=sync_sqlite_url)` — the `apscheduler_jobs` table is auto-created on first use
-  - [ ] Instantiate `AsyncIOScheduler(jobstores={"default": job_store})` as a module-level singleton `scheduler`
-  - [ ] Export `scheduler` so `main.py` can import it
+- [x] Task 1: Create `backend/app/scheduler/setup.py` — scheduler init (AC: 1, 2)
+  - [x] Import `AsyncIOScheduler` from `apscheduler.schedulers.asyncio`
+  - [x] Import `SQLAlchemyJobStore` from `apscheduler.jobstores.sqlalchemy`
+  - [x] Extract the sync SQLite URL from `settings.database_url` (strip `+aiosqlite` driver prefix — SQLAlchemyJobStore requires a sync URL)
+  - [x] Instantiate `SQLAlchemyJobStore(url=sync_sqlite_url)` — the `apscheduler_jobs` table is auto-created on first use
+  - [x] Instantiate `AsyncIOScheduler(jobstores={"default": job_store})` as a module-level singleton `scheduler`
+  - [x] Export `scheduler` so `main.py` can import it
 
-- [ ] Task 2: Create `backend/app/scheduler/jobs.py` — job function stubs (AC: 3, 4)
-  - [ ] Define `async def send_notification(task_id: int, offset_minutes: int) -> None:`
-  - [ ] For now, stub with `pass` — the actual push logic is wired in Story 2.6
-  - [ ] No DB access, no SQLAlchemy imports — job functions only call `push_service` (enforced by architecture)
-  - [ ] Add a module-level docstring: `"""Scheduler job functions. Must not perform DB mutations."""`
+- [x] Task 2: Create `backend/app/scheduler/jobs.py` — job function stubs (AC: 3, 4)
+  - [x] Define `async def send_notification(task_id: int, offset_minutes: int) -> None:`
+  - [x] For now, stub with `pass` — the actual push logic is wired in Story 2.6
+  - [x] No DB access, no SQLAlchemy imports — job functions only call `push_service` (enforced by architecture)
+  - [x] Add a module-level docstring: `"""Scheduler job functions. Must not perform DB mutations."""`
 
-- [ ] Task 3: Wire scheduler into `backend/app/main.py` lifespan (AC: 1)
-  - [ ] Replace the existing placeholder comments in the lifespan context manager
-  - [ ] Import `scheduler` from `app.scheduler.setup`
-  - [ ] In `async with lifespan`: `scheduler.start()` before `yield`; `scheduler.shutdown()` after `yield`
-  - [ ] Keep all existing code intact (`CORS`, `exception_handler`, `include_router`, `health` endpoint)
+- [x] Task 3: Wire scheduler into `backend/app/main.py` lifespan (AC: 1)
+  - [x] Replace the existing placeholder comments in the lifespan context manager
+  - [x] Import `scheduler` from `app.scheduler.setup`
+  - [x] In `async with lifespan`: `scheduler.start()` before `yield`; `scheduler.shutdown()` after `yield`
+  - [x] Keep all existing code intact (`CORS`, `exception_handler`, `include_router`, `health` endpoint)
 
-- [ ] Task 4: Create `backend/app/services/scheduler_service.py` — scheduling API (AC: 3)
-  - [ ] Import `scheduler` from `app.scheduler.setup`
-  - [ ] Import `send_notification` from `app.scheduler.jobs`
-  - [ ] Implement `def schedule_reminders(task) -> None:` — for each offset in `task.offsets` (list[int]), add a job:
+- [x] Task 4: Create `backend/app/services/scheduler_service.py` — scheduling API (AC: 3)
+  - [x] Import `scheduler` from `app.scheduler.setup`
+  - [x] Import `send_notification` from `app.scheduler.jobs`
+  - [x] Implement `def schedule_reminders(task) -> None:` — for each offset in `task.offsets` (list[int]), add a job:
     ```python
     fire_at = task.deadline_at - timedelta(minutes=offset)
     scheduler.add_job(
@@ -65,28 +65,28 @@ so that scheduled notifications survive server restarts and redeploys without be
         misfire_grace_time=120,
     )
     ```
-  - [ ] Implement `def cancel_task_jobs(task_id: int) -> None:` — iterate over known offsets or use `scheduler.get_jobs()` filtered by prefix `f"reminder_{task_id}_"`:
+  - [x] Implement `def cancel_task_jobs(task_id: int) -> None:` — iterate over known offsets or use `scheduler.get_jobs()` filtered by prefix `f"reminder_{task_id}_"`:
     ```python
     for job in scheduler.get_jobs():
         if job.id.startswith(f"reminder_{task_id}_"):
             job.remove()
     ```
-  - [ ] Neither function should be `async` — APScheduler 3.x `add_job`/`remove` are synchronous methods
-  - [ ] Handle the case where `task.offsets` is `None` or empty: skip scheduling gracefully
+  - [x] Neither function should be `async` — APScheduler 3.x `add_job`/`remove` are synchronous methods
+  - [x] Handle the case where `task.offsets` is `None` or empty: skip scheduling gracefully
 
-- [ ] Task 5: Write backend tests (AC: 1–4)
-  - [ ] Create `backend/tests/test_scheduler.py`
-  - [ ] Test: scheduler starts and stops without error (use a real in-memory scheduler instance, not the singleton)
-  - [ ] Test: `schedule_reminders` creates jobs with correct IDs matching `reminder_{task_id}_{offset}`
-  - [ ] Test: `cancel_task_jobs` removes all jobs for a given task_id
-  - [ ] Test: `schedule_reminders` with empty offsets list creates no jobs
-  - [ ] Use a temporary SQLite file or in-memory SQLAlchemy job store for isolation — do NOT use the app singleton scheduler in tests
+- [x] Task 5: Write backend tests (AC: 1–4)
+  - [x] Create `backend/tests/test_scheduler.py`
+  - [x] Test: scheduler starts and stops without error (use a real in-memory scheduler instance, not the singleton)
+  - [x] Test: `schedule_reminders` creates jobs with correct IDs matching `reminder_{task_id}_{offset}`
+  - [x] Test: `cancel_task_jobs` removes all jobs for a given task_id
+  - [x] Test: `schedule_reminders` with empty offsets list creates no jobs
+  - [x] Use a temporary SQLite file or in-memory SQLAlchemy job store for isolation — do NOT use the app singleton scheduler in tests
 
-- [ ] Task 6: Verify (AC: 1–4)
-  - [ ] `cd backend && uv run uvicorn app.main:app --reload` — app starts with no errors
-  - [ ] Check logs: scheduler starts, `apscheduler_jobs` table is created in the DB
-  - [ ] `cd backend && uv run pytest tests/ -v` — all tests pass
-  - [ ] `cd backend && uv run ruff check app/` — lint passes clean
+- [x] Task 6: Verify (AC: 1–4)
+  - [x] `cd backend && uv run uvicorn app.main:app --reload` — app starts with no errors
+  - [x] Check logs: scheduler starts, `apscheduler_jobs` table is created in the DB
+  - [x] `cd backend && uv run pytest tests/ -v` — all tests pass (1 pre-existing unrelated failure excluded)
+  - [x] `cd backend && uv run ruff check app/` — lint passes clean
 
 ## Dev Notes
 
@@ -311,9 +311,19 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+- `AsyncIOScheduler.start()` requires a running event loop — tests must be `async` functions (pytest-asyncio handles this in `asyncio_mode = auto`).
+- `sched.running` property does not update synchronously after `shutdown()` in async context; used `sched.state == STATE_STOPPED` with a brief `await asyncio.sleep(0.05)` instead.
+- The pre-existing `test_patch_partial_update` failure is a string comparison issue with ISO8601 timestamps (microseconds vs no microseconds) — confirmed failing before this story.
+
 ### Completion Notes List
 
-Ultimate context engine analysis completed — comprehensive developer guide created.
+- Ultimate context engine analysis completed — comprehensive developer guide created.
+- Implemented all 4 production files and 1 test file per story spec.
+- `scheduler/setup.py`: strips `+aiosqlite` from DB URL as documented — critical for SQLAlchemyJobStore compatibility.
+- `scheduler/jobs.py`: `send_notification` stub with correct signature, no DB imports.
+- `main.py`: scheduler started in lifespan before `yield`, shutdown after — clean lifecycle.
+- `scheduler_service.py`: `schedule_reminders` and `cancel_task_jobs` are synchronous, use module-level singleton via `patch.object` in tests.
+- `test_scheduler.py`: 6 tests, all passing — uses `MemoryJobStore` per test, patches the singleton, tests correct job IDs, cancellation, and empty offsets handling.
 
 ### File List
 
@@ -323,6 +333,18 @@ Ultimate context engine analysis completed — comprehensive developer guide cre
 - `backend/app/services/scheduler_service.py` (NEW)
 - `backend/tests/test_scheduler.py` (NEW)
 
+### Review Findings
+
+- [x] [Review][Patch] `send_notification` declared `async` — change to `def` to match APScheduler 3.x thread-pool execution model [backend/app/scheduler/jobs.py:4]
+- [x] [Review][Patch] Add test: calling `schedule_reminders` twice for the same task asserts only one job exists (validates `replace_existing=True`) [backend/tests/test_scheduler.py]
+- [x] [Review][Patch] `scheduler.shutdown()` in lifespan uses default `wait=True` — change to `scheduler.shutdown(wait=False)` to avoid blocking event loop on app shutdown [backend/app/main.py:18]
+- [x] [Review][Patch] `client` fixture in `conftest.py` starts real singleton scheduler against SQLite during push integration tests — mock/suppress scheduler lifespan in tests [backend/tests/conftest.py]
+- [x] [Review][Defer] No guard for past fire dates in `schedule_reminders` — APScheduler `misfire_grace_time=120` is the documented intent; validation belongs in Story 2.4 [backend/app/services/scheduler_service.py:11] — deferred, pre-existing scope
+- [x] [Review][Defer] VAPID key validity not checked at startup — log-and-swallow is spec-intended; startup validation is a future hardening concern — deferred, out of scope
+- [x] [Review][Defer] `_sync_url` via `str.replace` is brittle — works correctly for this project's fixed SQLite+aiosqlite URL [backend/app/scheduler/setup.py:6] — deferred, over-engineering concern for a personal app
+
 ## Change Log
 
 - 2026-05-25: Story created — APScheduler + SQLAlchemy job store setup, scheduler service scaffolding, lifespan wiring.
+- 2026-05-25: Story implemented — all tasks complete, 6 new tests passing, lint clean, app imports verified.
+- 2026-05-25: Code review complete — 4 patch findings, 3 deferred.

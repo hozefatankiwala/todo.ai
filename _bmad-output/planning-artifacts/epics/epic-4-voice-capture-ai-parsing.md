@@ -1,8 +1,8 @@
-# Epic 3: Voice Capture & AI Parsing
+# Epic 4: Voice Capture & AI Parsing
 
 User can tap the Voice FAB, speak naturally, and see the AI-parsed task pre-filled on the Confirmation Screen. Voice is the primary creation path; text fallback remains available.
 
-## Story 3.1: LLM Parse Endpoint
+## Story 4.1: LLM Parse Endpoint
 
 As a developer,
 I want a backend endpoint that accepts a voice transcript and returns structured task fields,
@@ -34,7 +34,7 @@ So that the frontend can send raw speech and receive a ready-to-display parse re
 
 ---
 
-## Story 3.2: Voice FAB & Web Speech API
+## Story 4.2: Voice FAB & Web Speech API
 
 As a user,
 I want to tap the Voice FAB and speak a task naturally with clear visual feedback at every step,
@@ -70,7 +70,7 @@ So that I always know whether the app is listening, processing, or has encounter
 
 ---
 
-## Story 3.3: Confirmation Sheet with Voice Prefill
+## Story 4.3: Confirmation Sheet with Voice Prefill
 
 As a user,
 I want the Confirmation Sheet to open pre-filled with the AI-parsed task name, deadline, and description after I speak,
@@ -104,7 +104,7 @@ So that I can verify the parse result and save in one tap when it is correct.
 
 ---
 
-## Story 3.4: Voice Error Handling & Text Fallback
+## Story 4.4: Voice Error Handling & Text Fallback
 
 As a user,
 I want clear recovery options when voice capture or AI parsing fails,
