@@ -9,6 +9,20 @@ from app.main import app
 from app.models.base import Base
 
 
+_SCHEDULER_TEST_MODULES = {"tests.test_scheduler", "test_scheduler"}
+
+
+@pytest.fixture(autouse=True)
+def mock_scheduler_service(request):
+    """Auto-mock scheduler service calls for API tests; pass through for scheduler unit tests."""
+    if request.module.__name__ in _SCHEDULER_TEST_MODULES:
+        yield
+        return
+    with patch("app.services.task_service.scheduler_service.schedule_reminders"), \
+         patch("app.services.task_service.scheduler_service.cancel_task_jobs"):
+        yield
+
+
 @pytest.fixture
 async def db_session():
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")

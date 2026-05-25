@@ -28,6 +28,7 @@ interface CreateTaskPayload {
   name: string
   deadline_at: string
   description?: string
+  offsets?: number[]
 }
 
 export function useCreateTask() {
@@ -47,6 +48,7 @@ interface UpdateTaskPayload {
   name?: string
   deadline_at?: string
   description?: string | null
+  offsets?: number[]
 }
 
 export function useUpdateTask() {

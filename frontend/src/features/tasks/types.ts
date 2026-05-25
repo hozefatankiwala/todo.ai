@@ -7,4 +7,5 @@ export interface Task {
   completed_at: string | null
   created_at: string
   updated_at: string
+  offsets: number[]
 }

@@ -1,6 +1,6 @@
 # Story 2.4: Notification Scheduling on Task Mutations
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -33,48 +33,48 @@ so that my scheduled reminders always reflect the current state of each task.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Fix `scheduler_service.schedule_reminders` to handle JSON string offsets (AC: 1, 2, 5)
-  - [ ] In `backend/app/services/scheduler_service.py`, update `schedule_reminders` to deserialize `task.offsets` if it is a string: `import json` at top; replace `offsets = task.offsets or []` with the safe deserialization pattern (see Dev Notes)
-  - [ ] This is required because Story 2.3 stores `task.offsets` as a JSON string `"[15, 60]"` in the `Text` column — the SQLAlchemy model returns a raw string, not a list
-  - [ ] After fix, `schedule_reminders` must work correctly when called with a `Task` ORM object straight from the DB
+- [x] Task 1: Fix `scheduler_service.schedule_reminders` to handle JSON string offsets (AC: 1, 2, 5)
+  - [x] In `backend/app/services/scheduler_service.py`, update `schedule_reminders` to deserialize `task.offsets` if it is a string: `import json` at top; replace `offsets = task.offsets or []` with the safe deserialization pattern (see Dev Notes)
+  - [x] This is required because Story 2.3 stores `task.offsets` as a JSON string `"[15, 60]"` in the `Text` column — the SQLAlchemy model returns a raw string, not a list
+  - [x] After fix, `schedule_reminders` must work correctly when called with a `Task` ORM object straight from the DB
 
-- [ ] Task 2: Wire `schedule_reminders` into `task_service.create_task` (AC: 1, 5)
-  - [ ] In `backend/app/services/task_service.py`, add `from app.services import scheduler_service` import
-  - [ ] After `await db.refresh(task)` in `create_task`, call `scheduler_service.schedule_reminders(task)`
-  - [ ] Correct position: AFTER the `db.refresh` so `task.id` is populated and `task.offsets` is set
-  - [ ] No `try/except` — scheduler failures should surface; `schedule_reminders` is already idempotent via `replace_existing=True`
+- [x] Task 2: Wire `schedule_reminders` into `task_service.create_task` (AC: 1, 5)
+  - [x] In `backend/app/services/task_service.py`, add `from app.services import scheduler_service` import
+  - [x] After `await db.refresh(task)` in `create_task`, call `scheduler_service.schedule_reminders(task)`
+  - [x] Correct position: AFTER the `db.refresh` so `task.id` is populated and `task.offsets` is set
+  - [x] No `try/except` — scheduler failures should surface; `schedule_reminders` is already idempotent via `replace_existing=True`
 
-- [ ] Task 3: Wire cancel+reschedule into `task_service.update_task` (AC: 2, 5)
-  - [ ] In `backend/app/services/task_service.py`, after `await db.refresh(task)` in `update_task`, call `scheduler_service.cancel_task_jobs(task.id)` then `scheduler_service.schedule_reminders(task)`
-  - [ ] Cancel BEFORE schedule — prevents duplicate jobs when only deadline changes (same offsets, new fire times)
-  - [ ] This runs even if offsets didn't change (deadline change alone requires rescheduling)
+- [x] Task 3: Wire cancel+reschedule into `task_service.update_task` (AC: 2, 5)
+  - [x] In `backend/app/services/task_service.py`, after `await db.refresh(task)` in `update_task`, call `scheduler_service.cancel_task_jobs(task.id)` then `scheduler_service.schedule_reminders(task)`
+  - [x] Cancel BEFORE schedule — prevents duplicate jobs when only deadline changes (same offsets, new fire times)
+  - [x] This runs even if offsets didn't change (deadline change alone requires rescheduling)
 
-- [ ] Task 4: Wire `cancel_task_jobs` into `task_service.complete_task` (AC: 3)
-  - [ ] In `backend/app/services/task_service.py`, after `await db.refresh(task)` in `complete_task`, call `scheduler_service.cancel_task_jobs(task.id)`
-  - [ ] Call unconditionally — idempotent if no jobs exist; prevents stale jobs when completing an already-completed task
+- [x] Task 4: Wire `cancel_task_jobs` into `task_service.complete_task` (AC: 3)
+  - [x] In `backend/app/services/task_service.py`, after `await db.refresh(task)` in `complete_task`, call `scheduler_service.cancel_task_jobs(task.id)`
+  - [x] Call unconditionally — idempotent if no jobs exist; prevents stale jobs when completing an already-completed task
 
-- [ ] Task 5: Wire `cancel_task_jobs` into `task_service.delete_task` (AC: 4)
-  - [ ] In `backend/app/services/task_service.py`, BEFORE `await db.delete(task)` in `delete_task`, call `scheduler_service.cancel_task_jobs(task_id)`
-  - [ ] Must cancel BEFORE delete — the task object is still available at this point; after delete, job cancellation is a best-effort cleanup anyway, but ordering matters for clarity
-  - [ ] `delete_task` already fetches the task via `get_task` before deleting — `task_id` is available directly
+- [x] Task 5: Wire `cancel_task_jobs` into `task_service.delete_task` (AC: 4)
+  - [x] In `backend/app/services/task_service.py`, BEFORE `await db.delete(task)` in `delete_task`, call `scheduler_service.cancel_task_jobs(task_id)`
+  - [x] Must cancel BEFORE delete — the task object is still available at this point; after delete, job cancellation is a best-effort cleanup anyway, but ordering matters for clarity
+  - [x] `delete_task` already fetches the task via `get_task` before deleting — `task_id` is available directly
 
-- [ ] Task 6: Write integration tests verifying scheduler calls on all mutations (AC: 1–5)
-  - [ ] In `backend/tests/test_tasks.py`, add tests using `unittest.mock.patch` to mock `scheduler_service.schedule_reminders` and `scheduler_service.cancel_task_jobs`
-  - [ ] Test: `POST /api/v1/tasks/` with offsets → `schedule_reminders` called once with task that has `offsets` column set
-  - [ ] Test: `POST /api/v1/tasks/` with no offsets → `schedule_reminders` called (with zero offsets → no jobs scheduled)
-  - [ ] Test: `PATCH /api/v1/tasks/{id}` → `cancel_task_jobs` called before `schedule_reminders`; both called exactly once
-  - [ ] Test: `POST /api/v1/tasks/{id}/complete` → `cancel_task_jobs` called once with correct task_id
-  - [ ] Test: `DELETE /api/v1/tasks/{id}` → `cancel_task_jobs` called once with correct task_id
-  - [ ] Test: task created with offsets `[60, 1440]` triggers `schedule_reminders` receiving a Task with `offsets = '[60, 1440]'` (JSON string)
+- [x] Task 6: Write integration tests verifying scheduler calls on all mutations (AC: 1–5)
+  - [x] In `backend/tests/test_tasks.py`, add tests using `unittest.mock.patch` to mock `scheduler_service.schedule_reminders` and `scheduler_service.cancel_task_jobs`
+  - [x] Test: `POST /api/v1/tasks/` with offsets → `schedule_reminders` called once with task that has `offsets` column set
+  - [x] Test: `POST /api/v1/tasks/` with no offsets → `schedule_reminders` called (with zero offsets → no jobs scheduled)
+  - [x] Test: `PATCH /api/v1/tasks/{id}` → `cancel_task_jobs` called before `schedule_reminders`; both called exactly once
+  - [x] Test: `POST /api/v1/tasks/{id}/complete` → `cancel_task_jobs` called once with correct task_id
+  - [x] Test: `DELETE /api/v1/tasks/{id}` → `cancel_task_jobs` called once with correct task_id
+  - [x] Test: task created with offsets `[60, 1440]` triggers `schedule_reminders` receiving a Task with `offsets = '[60, 1440]'` (JSON string)
 
-- [ ] Task 7: Write integration test for scheduler_service with real Task objects (AC: 1, 2, 5)
-  - [ ] In `backend/tests/test_scheduler.py`, add test: `schedule_reminders` receiving a `Task`-like object where `offsets` is a JSON string `"[15, 60]"` correctly creates jobs `reminder_X_15` and `reminder_X_60`
-  - [ ] This test verifies the JSON string deserialization fix from Task 1 is working
+- [x] Task 7: Write integration test for scheduler_service with real Task objects (AC: 1, 2, 5)
+  - [x] In `backend/tests/test_scheduler.py`, add test: `schedule_reminders` receiving a `Task`-like object where `offsets` is a JSON string `"[15, 60]"` correctly creates jobs `reminder_X_15` and `reminder_X_60`
+  - [x] This test verifies the JSON string deserialization fix from Task 1 is working
 
-- [ ] Task 8: Run all tests and verify (AC: 1–5)
-  - [ ] `cd backend && uv run pytest tests/ -v` — all tests pass (existing + new)
-  - [ ] `cd backend && uv run ruff check app/` — lint clean
-  - [ ] Verify: `cd backend && uv run uvicorn app.main:app --reload` starts without error
+- [x] Task 8: Run all tests and verify (AC: 1–5)
+  - [x] `cd backend && uv run pytest tests/ -v` — all tests pass (existing + new)
+  - [x] `cd backend && uv run ruff check app/` — lint clean
+  - [x] Verify: `cd backend && uv run uvicorn app.main:app --reload` starts without error
 
 ## Dev Notes
 
@@ -399,8 +399,32 @@ claude-sonnet-4-6
 
 Ultimate context engine analysis completed — comprehensive developer guide created.
 
+Implementation complete (2026-05-25):
+- Added `_parse_offsets(raw)` helper to `scheduler_service.py` — handles None, list, and JSON string inputs safely
+- Wired `scheduler_service.schedule_reminders(task)` into `create_task` (after db.refresh)
+- Wired `cancel_task_jobs(task.id)` + `schedule_reminders(task)` into `update_task` (cancel before schedule, after db.refresh)
+- Wired `cancel_task_jobs(task_id)` into `complete_task` (outside the is_completed guard, after db.refresh)
+- Wired `cancel_task_jobs(task_id)` into `delete_task` (before db.delete)
+- Added `autouse` fixture in conftest.py that auto-mocks scheduler calls for API tests but passes through for test_scheduler.py
+- 5 new integration tests in test_tasks.py + 1 new unit test in test_scheduler.py; all 36 tests pass
+
 ### File List
+
+- `backend/app/services/scheduler_service.py` — Added `_parse_offsets` helper + `import json`; `schedule_reminders` now uses `_parse_offsets` to handle JSON string, list, or None offsets
+- `backend/app/services/task_service.py` — Added `from app.services import scheduler_service` import; wired `schedule_reminders` into `create_task`, cancel+reschedule into `update_task`, `cancel_task_jobs` into `complete_task` and `delete_task`
+- `backend/tests/conftest.py` — Added `autouse` fixture `mock_scheduler_service` that auto-mocks scheduler calls for API tests (skips test_scheduler module)
+- `backend/tests/test_tasks.py` — Added 5 scheduler integration tests covering all mutation endpoints
+- `backend/tests/test_scheduler.py` — Added `test_schedule_reminders_with_json_string_offsets` test
 
 ### Change Log
 
 - 2026-05-25: Story created — wire scheduler service into all task mutation service functions.
+- 2026-05-25: Story implemented — added `_parse_offsets` to scheduler_service, wired scheduler calls into all 4 task_service mutation functions, added autouse fixture to conftest.py, added 5 integration tests in test_tasks.py, added JSON string offsets test in test_scheduler.py. All 36 tests pass, lint clean.
+
+### Review Findings
+
+- [x] [Review][Decision] Unconditional cancel+reschedule on every update_task — dismissed, intentional simplification accepted for single-user app
+- [x] [Review][Patch] `_parse_offsets` doesn't validate JSON result is a list — fixed: added `isinstance(parsed, list)` check [backend/app/services/scheduler_service.py]
+- [x] [Review][Patch] `mock_scheduler_service` conftest fixture uses fragile string-match — fixed: replaced with exact module name set [backend/tests/conftest.py]
+- [x] [Review][Defer] All push subscriptions receive every notification regardless of task/user ownership — `select(PushSubscription)` has no filtering; architectural scope beyond this story [backend/app/scheduler/jobs.py] — deferred, pre-existing
+- [x] [Review][Defer] `_sync_engine` created at import time with string-replace — brittle URL derivation inherited from Story 2-1 design [backend/app/scheduler/jobs.py] — deferred, pre-existing

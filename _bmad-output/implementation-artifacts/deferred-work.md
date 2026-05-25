@@ -69,3 +69,20 @@
 - 410 Gone from push service silently swallowed — stale subscription pruning logic needed; future story. [backend/app/services/push_service.py:32-33]
 - No `DELETE /unsubscribe` endpoint — stale subscriptions accumulate indefinitely; add in a future story. [backend/app/routers/push.py]
 - CORS `allow_credentials` not set — pre-existing config; revisit if PWA credentialed requests fail in production. [backend/app/main.py]
+
+## Deferred from: code review of 2-4, 2-5, 2-6 (2026-05-25)
+
+- All push subscriptions receive every notification regardless of task/user ownership — `select(PushSubscription)` has no filtering; architectural scope for multi-user story. [backend/app/scheduler/jobs.py]
+- `_sync_engine` in jobs.py created at import time with string-replace URL — brittle, inherited from Story 2-1 pattern; use `make_url` if drivers change. [backend/app/scheduler/jobs.py]
+- delete_task cancel→push race — APScheduler thread-pool may execute send_notification after cancel_task_jobs returns but before db.delete commits; requires APScheduler-level locking or saga pattern. [backend/app/services/task_service.py]
+- Double-tap Save race — two concurrent `requestPermission()` calls possible before isPending gates the button; browser behaviour for concurrent permission prompts is undefined. [frontend/src/features/voice/ConfirmationSheet.tsx, EditSheet.tsx]
+
+## Deferred from: code review of 2-3-offset-selection-ui (2026-05-25)
+
+- `update_task` calls `schedule_reminders` with no guard for already-completed tasks — Story 2.4 scope; low risk since API layer won't call `update_task` after `complete_task`. [backend/app/services/task_service.py]
+- `cancel_task_jobs` called before `db.delete` — not atomic; if commit fails, task survives but its APScheduler jobs are gone. Requires saga/transaction pattern. [backend/app/services/task_service.py]
+- Scheduler calls in `update_task` have no error handling — if `schedule_reminders` raises, reminders are silently dropped after a cancel; caller gets 200. Story 2.4 scope. [backend/app/services/task_service.py]
+- No server-side validation that offset values are within the allowed set `[15, 30, 60, 1440, 2880]` — frontend enforces this; backend accepts arbitrary positive ints. Add `Field` validator in a future hardening pass. [backend/app/schemas/task.py]
+- `parse_offsets` silently returns `[]` on corrupt DB JSON with no log — data loss invisible to caller. Add warning log in a future hardening story. [backend/app/schemas/task.py]
+- `hasPastWarning` not cleared reactively when offsets/deadline changes, only on Save — minor stale UX; spec ties warning to Save tap so this is intentional. [frontend/src/features/voice/ConfirmationSheet.tsx, EditSheet.tsx]
+- `EditSheet` dirty-check baseline shifts when React Query refetches `task` prop mid-session — spurious save when task is refetched between edits; acceptable for MVP. [frontend/src/features/voice/EditSheet.tsx]

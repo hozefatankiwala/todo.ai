@@ -1,12 +1,27 @@
+import json
 from datetime import timedelta
 
 from app.scheduler.jobs import send_notification
 from app.scheduler.setup import scheduler
 
 
+def _parse_offsets(raw) -> list[int]:
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        return raw
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+            return parsed if isinstance(parsed, list) else []
+        except (json.JSONDecodeError, ValueError):
+            return []
+    return []
+
+
 def schedule_reminders(task) -> None:
     """Schedule one APScheduler job per offset for a task."""
-    offsets = task.offsets or []
+    offsets = _parse_offsets(task.offsets)
     for offset in offsets:
         fire_at = task.deadline_at - timedelta(minutes=offset)
         scheduler.add_job(

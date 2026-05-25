@@ -1,6 +1,7 @@
+import json
 from datetime import UTC, datetime
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, field_validator, model_validator
 
 
 def _ensure_utc(dt: datetime | None) -> datetime | None:
@@ -14,12 +15,14 @@ class TaskCreate(BaseModel):
     name: str
     deadline_at: AwareDatetime
     description: str | None = None
+    offsets: list[int] = []
 
 
 class TaskUpdate(BaseModel):
     name: str | None = None
     deadline_at: AwareDatetime | None = None
     description: str | None = None
+    offsets: list[int] | None = None
 
 
 class TaskRead(BaseModel):
@@ -31,8 +34,23 @@ class TaskRead(BaseModel):
     completed_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    offsets: list[int] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator('offsets', mode='before')
+    @classmethod
+    def parse_offsets(cls, v) -> list[int]:
+        if v is None:
+            return []
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, ValueError):
+                return []
+        return []
 
     @model_validator(mode='after')
     def attach_utc(self) -> 'TaskRead':

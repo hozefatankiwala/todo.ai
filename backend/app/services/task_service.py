@@ -3,6 +3,7 @@ Task service — all business logic for task CRUD.
 Convention: each function owns its own db.commit() call (service-level commit per logical write).
 """
 
+import json
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskUpdate
+from app.services import scheduler_service
 
 
 async def list_tasks(db: AsyncSession, include_archived: bool = False) -> list[Task]:
@@ -27,10 +29,14 @@ async def get_task(db: AsyncSession, task_id: int) -> Task | None:
 
 
 async def create_task(db: AsyncSession, data: TaskCreate) -> Task:
-    task = Task(**data.model_dump())
+    task = Task(
+        **data.model_dump(exclude={"offsets"}),
+        offsets=json.dumps(data.offsets),
+    )
     db.add(task)
     await db.commit()
     await db.refresh(task)
+    scheduler_service.schedule_reminders(task)
     return task
 
 
@@ -43,11 +49,15 @@ async def update_task(db: AsyncSession, task_id: int, data: TaskUpdate) -> Task 
         return None
     updates = data.model_dump(exclude_unset=True)
     for field, value in updates.items():
-        if field in _TASK_UPDATE_FIELDS:
+        if field == "offsets":
+            task.offsets = json.dumps(value)
+        elif field in _TASK_UPDATE_FIELDS:
             setattr(task, field, value)
     task.updated_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(task)
+    scheduler_service.cancel_task_jobs(task.id)
+    scheduler_service.schedule_reminders(task)
     return task
 
 
@@ -61,6 +71,7 @@ async def complete_task(db: AsyncSession, task_id: int) -> Task | None:
         task.updated_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(task)
+    scheduler_service.cancel_task_jobs(task_id)
     return task
 
 
@@ -68,6 +79,7 @@ async def delete_task(db: AsyncSession, task_id: int) -> bool:
     task = await get_task(db, task_id)
     if task is None:
         return False
+    scheduler_service.cancel_task_jobs(task_id)
     await db.delete(task)
     await db.commit()
     return True

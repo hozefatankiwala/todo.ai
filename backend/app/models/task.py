@@ -27,3 +27,4 @@ class Task(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+    offsets: Mapped[str | None] = mapped_column(Text, nullable=True)

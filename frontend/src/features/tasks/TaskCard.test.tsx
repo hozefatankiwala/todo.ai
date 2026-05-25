@@ -14,6 +14,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     completed_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    offsets: [],
     ...overrides,
   }
 }

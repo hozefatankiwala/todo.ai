@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { useCreateTask } from '@/features/tasks/useTasks'
+import { usePushSubscription } from '@/features/notifications/usePushSubscription'
 import DeadlineChip from './DeadlineChip'
 import OffsetSelector from './OffsetSelector'
 
@@ -18,17 +20,37 @@ function SheetForm({ onClose }: SheetFormProps) {
   const [deadlineUtcIso, setDeadlineUtcIso] = useState<string | null>(null)
   const [description, setDescription] = useState('')
   const [selectedOffsets, setSelectedOffsets] = useState<number[]>([])
+  const [hasPastWarning, setHasPastWarning] = useState(false)
+  const [notifBlocked, setNotifBlocked] = useState(false)
 
   const createTask = useCreateTask()
+  const { requestAndSubscribe } = usePushSubscription()
   const canSave = name.trim().length > 0 && deadlineUtcIso !== null
 
   const handleSave = async () => {
     if (!canSave) return
+    setNotifBlocked(false)
+    setHasPastWarning(false)
+
+    const hasPast = selectedOffsets.some(
+      (offset) => deadlineUtcIso && new Date(deadlineUtcIso).getTime() - offset * 60_000 < Date.now()
+    )
+    setHasPastWarning(hasPast)
+
+    if (selectedOffsets.length > 0) {
+      const permResult = await requestAndSubscribe()
+      if (permResult === 'denied') {
+        setNotifBlocked(true)
+        // DO NOT return — task still saves (AC 3)
+      }
+    }
+
     try {
       await createTask.mutateAsync({
         name: name.trim(),
         deadline_at: deadlineUtcIso!,
         description: description.trim() || undefined,
+        offsets: selectedOffsets,
       })
       onClose()
     } catch {
@@ -38,6 +60,9 @@ function SheetForm({ onClose }: SheetFormProps) {
 
   return (
     <>
+      <VisuallyHidden.Root>
+        <SheetTitle>New task</SheetTitle>
+      </VisuallyHidden.Root>
       {/* Drag handle */}
       <div className="w-12 h-1 bg-zinc-500 rounded-full mx-auto mb-4" />
 
@@ -63,6 +88,12 @@ function SheetForm({ onClose }: SheetFormProps) {
         Reminders
       </p>
       <OffsetSelector selected={selectedOffsets} onChange={setSelectedOffsets} />
+      {hasPastWarning && (
+        <p className="text-amber-400 text-sm mt-2">This reminder is in the past</p>
+      )}
+      {notifBlocked && (
+        <p className="text-amber-400 text-sm mt-2">Reminders won't fire — notifications are blocked</p>
+      )}
 
       {/* Description */}
       <textarea

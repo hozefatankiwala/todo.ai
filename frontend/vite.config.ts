@@ -9,7 +9,13 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    VitePWA({ registerType: 'autoUpdate' }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'service-worker.ts',
+      devOptions: { enabled: true, type: 'module' },
+    }),
   ],
   resolve: {
     alias: {

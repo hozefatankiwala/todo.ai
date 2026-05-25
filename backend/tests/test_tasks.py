@@ -1,6 +1,8 @@
 """Integration tests for /api/v1/tasks/ endpoints."""
 
 import pytest
+from datetime import datetime
+from unittest.mock import patch
 from httpx import AsyncClient
 
 
@@ -66,7 +68,7 @@ async def test_patch_partial_update(client: AsyncClient):
     assert updated["name"] == "Updated"
     assert updated["description"] == "old"  # unchanged
     # updated_at should be the same or later (SQLite may not advance sub-second)
-    assert updated["updated_at"] >= original_updated_at
+    assert datetime.fromisoformat(updated["updated_at"]) >= datetime.fromisoformat(original_updated_at)
 
 
 @pytest.mark.asyncio
@@ -153,3 +155,124 @@ async def test_list_sorted_by_deadline_ascending(client: AsyncClient):
     tasks = resp.json()
     assert tasks[0]["name"] == "Earlier task"
     assert tasks[1]["name"] == "Later task"
+
+
+@pytest.mark.asyncio
+async def test_create_task_with_offsets(client: AsyncClient):
+    payload = {"name": "Reminder task", "deadline_at": "2026-06-10T10:00:00Z", "offsets": [15, 60]}
+    response = await client.post("/api/v1/tasks/", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["offsets"] == [15, 60]
+
+
+@pytest.mark.asyncio
+async def test_create_task_without_offsets_defaults_empty(client: AsyncClient):
+    payload = {"name": "No reminder", "deadline_at": "2026-06-10T11:00:00Z"}
+    response = await client.post("/api/v1/tasks/", json=payload)
+    assert response.status_code == 201
+    assert response.json()["offsets"] == []
+
+
+@pytest.mark.asyncio
+async def test_patch_task_offsets(client: AsyncClient):
+    post = await client.post(
+        "/api/v1/tasks/", json={"name": "Task", "deadline_at": "2026-06-10T12:00:00Z"}
+    )
+    task_id = post.json()["id"]
+
+    patch = await client.patch(f"/api/v1/tasks/{task_id}", json={"offsets": [1440]})
+    assert patch.status_code == 200
+    assert patch.json()["offsets"] == [1440]
+
+
+@pytest.mark.asyncio
+async def test_get_task_returns_offsets(client: AsyncClient):
+    post = await client.post(
+        "/api/v1/tasks/",
+        json={"name": "Task with offsets", "deadline_at": "2026-06-10T13:00:00Z", "offsets": [30, 1440]},
+    )
+    task_id = post.json()["id"]
+
+    response = await client.get(f"/api/v1/tasks/{task_id}")
+    assert response.status_code == 200
+    assert response.json()["offsets"] == [30, 1440]
+
+
+# --- Scheduler integration tests ---
+
+
+@pytest.mark.asyncio
+async def test_create_task_with_offsets_calls_schedule_reminders(client: AsyncClient):
+    with patch("app.services.task_service.scheduler_service.schedule_reminders") as mock_sched:
+        response = await client.post(
+            "/api/v1/tasks/",
+            json={"name": "Reminder task", "deadline_at": "2026-06-05T10:00:00Z", "offsets": [60, 1440]},
+        )
+    assert response.status_code == 201
+    mock_sched.assert_called_once()
+    task_arg = mock_sched.call_args[0][0]
+    assert task_arg.id is not None
+    # offsets is stored as JSON string in DB
+    assert task_arg.offsets == "[60, 1440]"
+
+
+@pytest.mark.asyncio
+async def test_create_task_without_offsets_calls_schedule_reminders(client: AsyncClient):
+    with patch("app.services.task_service.scheduler_service.schedule_reminders") as mock_sched:
+        response = await client.post(
+            "/api/v1/tasks/",
+            json={"name": "No reminder", "deadline_at": "2026-06-05T10:00:00Z"},
+        )
+    assert response.status_code == 201
+    mock_sched.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_update_task_cancels_then_reschedules(client: AsyncClient):
+    post = await client.post(
+        "/api/v1/tasks/",
+        json={"name": "Task", "deadline_at": "2026-07-01T09:00:00Z"},
+    )
+    task_id = post.json()["id"]
+
+    call_order = []
+
+    with patch("app.services.task_service.scheduler_service.cancel_task_jobs", side_effect=lambda tid: call_order.append("cancel")) as mock_cancel, \
+         patch("app.services.task_service.scheduler_service.schedule_reminders", side_effect=lambda t: call_order.append("schedule")) as mock_sched:
+        response = await client.patch(f"/api/v1/tasks/{task_id}", json={"name": "Updated"})
+
+    assert response.status_code == 200
+    mock_cancel.assert_called_once_with(task_id)
+    mock_sched.assert_called_once()
+    assert call_order == ["cancel", "schedule"]
+
+
+@pytest.mark.asyncio
+async def test_complete_task_cancels_jobs(client: AsyncClient):
+    post = await client.post(
+        "/api/v1/tasks/",
+        json={"name": "Task", "deadline_at": "2026-07-01T09:00:00Z"},
+    )
+    task_id = post.json()["id"]
+
+    with patch("app.services.task_service.scheduler_service.cancel_task_jobs") as mock_cancel:
+        response = await client.post(f"/api/v1/tasks/{task_id}/complete")
+
+    assert response.status_code == 204
+    mock_cancel.assert_called_once_with(task_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_task_cancels_jobs(client: AsyncClient):
+    post = await client.post(
+        "/api/v1/tasks/",
+        json={"name": "Task", "deadline_at": "2026-07-01T09:00:00Z"},
+    )
+    task_id = post.json()["id"]
+
+    with patch("app.services.task_service.scheduler_service.cancel_task_jobs") as mock_cancel:
+        response = await client.delete(f"/api/v1/tasks/{task_id}")
+
+    assert response.status_code == 204
+    mock_cancel.assert_called_once_with(task_id)
