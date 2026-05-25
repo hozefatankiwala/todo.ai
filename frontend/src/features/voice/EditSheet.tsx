@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { useUpdateTask } from '@/features/tasks/useTasks'
-import { usePushSubscription } from '@/features/notifications/usePushSubscription'
+import { usePushSubscription, isIos, setIosInstallDismissed } from '@/features/notifications/usePushSubscription'
 import { useUIStore } from '@/lib/store'
 import { formatBannerMessage } from '@/lib/offsets'
+import PWAInstallPrompt from '@/features/notifications/PWAInstallPrompt'
 import DeadlineChip from './DeadlineChip'
 import OffsetSelector from './OffsetSelector'
 import type { Task } from '@/features/tasks/types'
@@ -27,9 +28,13 @@ function EditForm({ task, onClose }: EditFormProps) {
   const [selectedOffsets, setSelectedOffsets] = useState<number[]>(task.offsets ?? [])
   const [hasPastWarning, setHasPastWarning] = useState(false)
   const [notifBlocked, setNotifBlocked] = useState(false)
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false)
+  const [installDismissed, setInstallDismissed] = useState(false)
   const updateTask = useUpdateTask()
+  const pendingPayloadRef = useRef<Parameters<typeof updateTask.mutateAsync>[0] | null>(null)
   const { requestAndSubscribe } = usePushSubscription()
   const { showTrustBanner } = useUIStore()
+  const installWarning = "Reminders won't fire until the app is installed"
 
   const canSave = name.trim().length > 0 && deadlineUtcIso.length > 0
 
@@ -37,19 +42,12 @@ function EditForm({ task, onClose }: EditFormProps) {
     if (!canSave) return
     setNotifBlocked(false)
     setHasPastWarning(false)
+    let installWarningNeeded = false
 
     const hasPast = selectedOffsets.some(
       (offset) => new Date(deadlineUtcIso).getTime() - offset * 60_000 < Date.now()
     )
     setHasPastWarning(hasPast)
-
-    if (selectedOffsets.length > 0) {
-      const permResult = await requestAndSubscribe()
-      if (permResult === 'denied') {
-        setNotifBlocked(true)
-        // DO NOT return — task still saves (AC 3)
-      }
-    }
 
     const trimmedName = name.trim()
     const trimmedDesc = description.trim() || null
@@ -61,13 +59,46 @@ function EditForm({ task, onClose }: EditFormProps) {
     if (JSON.stringify([...selectedOffsets].sort((a, b) => a - b)) !== JSON.stringify([...currentOffsets].sort((a, b) => a - b))) {
       payload.offsets = selectedOffsets
     }
+    pendingPayloadRef.current = payload
+
+    if (selectedOffsets.length > 0) {
+      const permResult = await requestAndSubscribe()
+      if (permResult === 'ios-needs-install') {
+        setShowInstallPrompt(true)
+        return
+      }
+      if (permResult === 'denied') {
+        setNotifBlocked(true)
+        // DO NOT return — task still saves (AC 3)
+      }
+      if (permResult === 'unsupported' && isIos()) {
+        installWarningNeeded = true
+        setInstallDismissed(true)
+      }
+    }
+
     try {
       await updateTask.mutateAsync(payload)
-      showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso))
+      showTrustBanner(
+        installWarningNeeded ? `Saved · ${installWarning}` : formatBannerMessage(selectedOffsets, deadlineUtcIso)
+      )
       onClose()
     } catch {
       // updateTask.isError is true; error message rendered below
     }
+  }
+
+  const handleInstallDismiss = async () => {
+    setIosInstallDismissed()
+    setInstallDismissed(true)
+    setShowInstallPrompt(false)
+    const payload = pendingPayloadRef.current
+    if (!payload) return
+    try {
+      await updateTask.mutateAsync(payload)
+      showTrustBanner(`Saved · ${installWarning}`)
+      onClose()
+    } catch { }
   }
 
   return (
@@ -103,9 +134,14 @@ function EditForm({ task, onClose }: EditFormProps) {
       {hasPastWarning && (
         <p className="text-amber-400 text-sm mt-2">This reminder is in the past</p>
       )}
-      {notifBlocked && (
-        <p className="text-amber-400 text-sm mt-2">Reminders won't fire — notifications are blocked</p>
+      {(notifBlocked || installDismissed) && (
+        <p className="text-amber-400 text-sm mt-2">
+          {installDismissed
+            ? installWarning
+            : "Reminders won't fire — notifications are blocked"}
+        </p>
       )}
+      <PWAInstallPrompt open={showInstallPrompt} onDismiss={handleInstallDismiss} />
 
       {/* Description */}
       <textarea

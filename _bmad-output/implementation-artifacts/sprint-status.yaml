@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-24
-last_updated: 2026-05-25 (story 3-1 done)
+last_updated: 2026-05-25 (story 3-2 done)
 project: simple-todo
 project_key: NOKEY
 tracking_system: file-system
@@ -68,7 +68,7 @@ development_status:
   # Epic 3: PWA & Production Deployment
   epic-3: in-progress
   3-1-pwa-manifest-service-worker: done
-  3-2-ios-pwa-install-prompt: backlog
+  3-2-ios-pwa-install-prompt: done
   3-3-caddy-configuration: backlog
   3-4-railway-deployment: backlog
   epic-3-retrospective: optional

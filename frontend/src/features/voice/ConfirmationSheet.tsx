@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { useCreateTask } from '@/features/tasks/useTasks'
-import { usePushSubscription } from '@/features/notifications/usePushSubscription'
+import { usePushSubscription, isIos, setIosInstallDismissed } from '@/features/notifications/usePushSubscription'
 import { useUIStore } from '@/lib/store'
 import { formatBannerMessage } from '@/lib/offsets'
+import PWAInstallPrompt from '@/features/notifications/PWAInstallPrompt'
 import DeadlineChip from './DeadlineChip'
 import OffsetSelector from './OffsetSelector'
 
@@ -24,16 +25,20 @@ function SheetForm({ onClose }: SheetFormProps) {
   const [selectedOffsets, setSelectedOffsets] = useState<number[]>([])
   const [hasPastWarning, setHasPastWarning] = useState(false)
   const [notifBlocked, setNotifBlocked] = useState(false)
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false)
+  const [installDismissed, setInstallDismissed] = useState(false)
 
   const createTask = useCreateTask()
   const { requestAndSubscribe } = usePushSubscription()
   const { showTrustBanner } = useUIStore()
   const canSave = name.trim().length > 0 && deadlineUtcIso !== null
+  const installWarning = "Reminders won't fire until the app is installed"
 
   const handleSave = async () => {
     if (!canSave) return
     setNotifBlocked(false)
     setHasPastWarning(false)
+    let installWarningNeeded = false
 
     const hasPast = selectedOffsets.some(
       (offset) => deadlineUtcIso && new Date(deadlineUtcIso).getTime() - offset * 60_000 < Date.now()
@@ -42,9 +47,17 @@ function SheetForm({ onClose }: SheetFormProps) {
 
     if (selectedOffsets.length > 0) {
       const permResult = await requestAndSubscribe()
+      if (permResult === 'ios-needs-install') {
+        setShowInstallPrompt(true)
+        return
+      }
       if (permResult === 'denied') {
         setNotifBlocked(true)
         // DO NOT return — task still saves (AC 3)
+      }
+      if (permResult === 'unsupported' && isIos()) {
+        installWarningNeeded = true
+        setInstallDismissed(true)
       }
     }
 
@@ -55,11 +68,29 @@ function SheetForm({ onClose }: SheetFormProps) {
         description: description.trim() || undefined,
         offsets: selectedOffsets,
       })
-      showTrustBanner(formatBannerMessage(selectedOffsets, deadlineUtcIso!))
+      showTrustBanner(
+        installWarningNeeded ? `Saved · ${installWarning}` : formatBannerMessage(selectedOffsets, deadlineUtcIso!)
+      )
       onClose()
     } catch {
       // createTask.isError will be true; error message renders below Save button
     }
+  }
+
+  const handleInstallDismiss = async () => {
+    setIosInstallDismissed()
+    setInstallDismissed(true)
+    setShowInstallPrompt(false)
+    try {
+      await createTask.mutateAsync({
+        name: name.trim(),
+        deadline_at: deadlineUtcIso!,
+        description: description.trim() || undefined,
+        offsets: selectedOffsets,
+      })
+      showTrustBanner(`Saved · ${installWarning}`)
+      onClose()
+    } catch { }
   }
 
   return (
@@ -95,9 +126,14 @@ function SheetForm({ onClose }: SheetFormProps) {
       {hasPastWarning && (
         <p className="text-amber-400 text-sm mt-2">This reminder is in the past</p>
       )}
-      {notifBlocked && (
-        <p className="text-amber-400 text-sm mt-2">Reminders won't fire — notifications are blocked</p>
+      {(notifBlocked || installDismissed) && (
+        <p className="text-amber-400 text-sm mt-2">
+          {installDismissed
+            ? installWarning
+            : "Reminders won't fire — notifications are blocked"}
+        </p>
       )}
+      <PWAInstallPrompt open={showInstallPrompt} onDismiss={handleInstallDismiss} />
 
       {/* Description */}
       <textarea

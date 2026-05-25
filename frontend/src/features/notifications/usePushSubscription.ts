@@ -1,6 +1,28 @@
 import { useState, useEffect } from 'react'
 import api from '@/lib/api'
 
+export function isStandalone(): boolean {
+  if (typeof window === 'undefined') return false
+  const standaloneDisplay = window.matchMedia?.('(display-mode: standalone)').matches ?? false
+  return (
+    standaloneDisplay ||
+    (window.navigator as { standalone?: boolean }).standalone === true
+  )
+}
+
+export function isIos(): boolean {
+  if (typeof window === 'undefined') return false
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone()
+}
+
+function iosInstallDismissed(): boolean {
+  try { return sessionStorage.getItem('pwa-install-dismissed') === 'true' } catch { return false }
+}
+
+export function setIosInstallDismissed(): void {
+  try { sessionStorage.setItem('pwa-install-dismissed', 'true') } catch { /* ignore */ }
+}
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -67,7 +89,9 @@ export function usePushSubscription() {
     }
   }, [])
 
-  const requestAndSubscribe = async (): Promise<'granted' | 'denied' | 'unsupported'> => {
+  const requestAndSubscribe = async (): Promise<'granted' | 'denied' | 'unsupported' | 'ios-needs-install'> => {
+    if (isIos() && !iosInstallDismissed()) return 'ios-needs-install'
+
     if (!checkPushSupported()) return 'unsupported'
 
     if (Notification.permission === 'granted') {
