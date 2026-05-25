@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-24
-last_updated: 2026-05-24 (story 1-7 ready-for-dev)
+last_updated: 2026-05-25 (story 1-7 done)
 project: simple-todo
 project_key: NOKEY
 tracking_system: file-system
@@ -50,13 +50,13 @@ development_status:
   1-4-text-task-creation: done
   1-5-task-detail-edit: done
   1-6-task-completion-archive: done
-  1-7-task-deletion: ready-for-dev
+  1-7-task-deletion: done
   epic-1-retrospective: optional
 
   # Epic 2: Push Notifications & Reminders
-  epic-2: backlog
-  2-1-apscheduler-sqlalchemy-job-store: backlog
-  2-2-push-subscription-vapid-backend: backlog
+  epic-2: in-progress
+  2-1-apscheduler-sqlalchemy-job-store: ready-for-dev
+  2-2-push-subscription-vapid-backend: ready-for-dev
   2-3-offset-selection-ui: backlog
   2-4-notification-scheduling-on-task-mutations: backlog
   2-5-push-permission-subscription-flow: backlog

@@ -52,3 +52,7 @@
 - `null completed_at` sort non-determinism — tasks with null `completed_at` compare as equal; shouldn't occur per API contract but worth hardening in a data-integrity pass. [frontend/src/features/tasks/useTasks.ts]
 - Multi-touch swipe miscalculation — simultaneous touches can produce a spurious swipe delta; acceptable edge case for v1. [frontend/src/features/tasks/TaskCard.tsx]
 - Swipe does not animate progressively (no touchmove handler) — snaps on release rather than sliding under the finger; upgrade in a UX polish story. [frontend/src/features/tasks/TaskCard.tsx]
+
+## Deferred from: code review of 1-7-task-deletion (2026-05-25)
+
+- `TaskDetail` stale-task flicker after delete — cache invalidation can cause a brief "Task not found" flash before `navigate('/')` completes; theoretical race, acceptable for v1. [frontend/src/features/tasks/TaskDetail.tsx]

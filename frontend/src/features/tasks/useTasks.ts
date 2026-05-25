@@ -75,6 +75,19 @@ export function useCompleteTask() {
   })
 }
 
+export function useDeleteTask() {
+  return useMutation<void, Error, { id: number }>({
+    mutationFn: async ({ id }) => {
+      await api.delete(`/api/v1/tasks/${id}`)
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'archive'] })
+    },
+  })
+}
+
 export function useArchiveQuery(enabled = true) {
   return useQuery<Task[]>({
     queryKey: ['tasks', 'archive'],

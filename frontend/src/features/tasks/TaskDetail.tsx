@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
-import { useTaskQuery, useCompleteTask } from './useTasks'
+import { useTaskQuery, useCompleteTask, useDeleteTask } from './useTasks'
+import DeleteDialog from './DeleteDialog'
 import { formatDeadline } from '@/lib/dateUtils'
 import EditSheet from '@/features/voice/EditSheet'
 
@@ -11,9 +12,12 @@ export default function TaskDetail() {
   const id = Number(taskId)
   const [editOpen, setEditOpen] = useState(false)
   const [completeError, setCompleteError] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState(false)
 
   const { data: task, isLoading, isError } = useTaskQuery(id)
   const completeTask = useCompleteTask()
+  const deleteTask = useDeleteTask()
 
   if (isNaN(id)) {
     return (
@@ -119,6 +123,34 @@ export default function TaskDetail() {
         </button>
         {completeError && (
           <p className="text-red-400 text-sm text-center mt-2">Failed to complete task. Try again.</p>
+        )}
+
+        {/* Delete button */}
+        <button
+          type="button"
+          onClick={() => setDeleteOpen(true)}
+          className="w-full mt-3 text-red-400 rounded-2xl py-3 font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+        >
+          Delete
+        </button>
+
+        <DeleteDialog
+          open={deleteOpen}
+          onClose={() => { setDeleteOpen(false); setDeleteError(false) }}
+          onConfirm={async () => {
+            setDeleteError(false)
+            try {
+              await deleteTask.mutateAsync({ id: task.id })
+              setDeleteOpen(false)
+              navigate('/')
+            } catch {
+              setDeleteError(true)
+            }
+          }}
+          isPending={deleteTask.isPending}
+        />
+        {deleteError && (
+          <p className="text-red-400 text-sm text-center mt-2">Failed to delete task. Try again.</p>
         )}
       </div>
 
